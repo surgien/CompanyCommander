@@ -1,5 +1,9 @@
 ﻿@page "/weather"
+@using CompanyCommander.DB
+@using LiteDB
+@using System.Text
 @inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>Wetter</PageTitle>
 
@@ -41,8 +45,53 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+
+        var dbContent = await localStorage.GetItemAsync<string>("Database");
+        var memStream = new MemoryStream();
+
+        if (dbContent != null)
+        {
+            var bytes = Convert.FromBase64String(dbContent);
+            memStream = new MemoryStream(bytes);
+        }
+
+
+
+        using (var db = new LiteDatabase(memStream))
+        {
+            // Ihre Datenbankoperationen
+            var collection = db.GetCollection<Stockpile>();
+
+            collection.Insert(new Stockpile { Amount = 10 });
+            var results = collection.FindAll().ToList();
+
+            db.Checkpoint();
+
+        }
+
+        // setzen Sie die Position auf 0, um von Anfang an zu lesen.
+        memStream.Position = 0;
+
+        var jsonString = Convert.ToBase64String(memStream.ToArray());
+
+        // StreamReader reader = new StreamReader(memStream);
+        // string text = reader.ReadToEnd();
+
+
+        // var newDbContent = Encoding.ASCII.GetString(memStream.ToArray());
+        await localStorage.SetItemAsync("Database", jsonString);
+        // await localStorage.SetItemAsync("Database2", text);
+
+
+
+
         forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
 
+    }
+
+    public MemoryStream GenerateStreamFromString(string s)
+    {
+        return new MemoryStream(Encoding.UTF8.GetBytes(s));
     }
 
     public class WeatherForecast
