@@ -52,7 +52,7 @@
         height: 3rem;
         display: flex;
         align-items: center;
-        line-height: 3rem;
+        /*line-height: 3rem;*/
 
     }
 
@@ -81,6 +81,10 @@
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
     }
+/*    .collapse .nav-icon {
+        font-size: 12.5rem;
+    }*/
+
     .nav-icon {
         font-size: 1.5rem;
         display: flex;
