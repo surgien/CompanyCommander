@@ -30,7 +30,7 @@
 
 <br />
 <br />
-<button class="btn btn-primary" @onclick="NewRoundAsync">Nächste Runde</button>
+<button class="btn btn-primary" @onclick="NewRoundAsync">Nächste Runde (Einkünfte werden angepasst)</button>
 
 
 <p role="status">Lager Manpower: @currentCountManpower</p>
@@ -40,6 +40,7 @@
 <p role="status">Lager Fuel: @currentCountFuel</p>
 <button class="btn btn-primary" @onclick="() => BuyOne(StockpileType.Fuel)">-1</button>
 <p role="status">Lager Victory-Points: @currentCountVictoryPoints</p>
+<button class="btn btn-primary" @onclick="GainVp">+1</button>
 
 
 @code {
@@ -139,9 +140,6 @@
                     break;
                 case StockpileType.Fuel:
                     currentCountFuel--;
-                    break;
-                case StockpileType.VictoryPoints:
-                    currentCountVictoryPoints--;
                     break;
             }
         }
@@ -265,5 +263,10 @@
         if (val > 0) return "+" + val;
         else if (val < 0) return val.ToString();
         else return "0";
+    }
+
+    private void GainVp(MouseEventArgs e)
+    {
+        currentCountVictoryPoints++;
     }
 }
