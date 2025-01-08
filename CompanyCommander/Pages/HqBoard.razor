@@ -1,20 +1,133 @@
 ﻿@page "/"
+@using BlazorBootstrap
 @using CompanyCommander.DB
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject AppDbContext db
-@inject IJSRuntime JS
 @implements IDisposable
 
-<PageTitle>BuildingBoard</PageTitle>
+<PageTitle>HqBoard</PageTitle>
 
-<h1>BuildingBoard</h1>
+<h1>HQ Board</h1>
+
+<ConfirmDialog @ref="dialog" />
 
 <div class="container">
     <div class="row mb-3">
+        <div class="col">
+            <button class="btn btn-primary me-2" @onclick="NewGameAsync">Neues Spiel</button>
+        </div>
         <div class="col text-end">
             <p role="status">Runde: @currentRound</p>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    Einkommen
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col text-start">
+                            <p role="status">🪖 Manpower: @currentIncomeManpower</p>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Manpower)">+1</button>
+                            <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Manpower)">-1</button>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col text-start">
+                            <p role="status">💣 Ammo: @currentIncomeAmmo</p>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Ammo)">+1</button>
+                            <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Ammo)">-1</button>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col text-start">
+                            <p role="status">⛽ Fuel: @currentIncomeFuel</p>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Fuel)">+1</button>
+                            <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Fuel)">-1</button>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col text-start">
+                            <p role="status">🏆 Victory Points: @currentIncomeVictoryPoints</p>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.VictoryPoints)">+1</button>
+                            <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.VictoryPoints)">-1</button>
+                        </div>
+                    </div>
+                    <br />
+                    <br />
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <button class="btn btn-primary me-2" @onclick="GainVp">☠ Kill +1</button>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-primary" @onclick="NewRoundAsync">Einkünfte anpassen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    Lager
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col text-start">
+                            <p role="status">🪖 Manpower: @currentCountManpower</p>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-primary me-2" @onclick="() => UndoOne(StockpileType.Manpower)">+1</button>
+                            <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Manpower)">-1</button>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col text-start">
+                            <p role="status">💣 Ammo: @currentCountAmmo</p>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-primary me-2" @onclick="() => UndoOne(StockpileType.Ammo)">+1</button>
+                            <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Ammo)">-1</button>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col text-start">
+                            <p role="status" class="mt-3">⛽ Fuel: @currentCountFuel</p>
+                        </div>
+                        <div class="col text-end">
+                            <button class="btn btn-primary me-2" @onclick="() => UndoOne(StockpileType.Fuel)">+1</button>
+                            <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Fuel)">-1</button>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col text-start">
+                            <p role="status" class="mt-3">🏆 Victory Points: @currentCountVictoryPoints</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div class="row mb-3">
         <div class="col">
@@ -27,71 +140,6 @@
             </ol>
         </div>
     </div>
-
-    <div class="row mb-3">
-        <div class="row mb-3">
-            <div class="col">
-                <div class="row mb-3">
-                    <div class="col">
-                        <button class="btn btn-primary me-2" @onclick="NewGameAsync">Neues Spiel</button>
-                    </div>
-                    <div class="col text-end">
-                        <button class="btn btn-primary me-2" @onclick="GainVp">Kill +1</button>
-                        <button class="btn btn-primary" @onclick="NewRoundAsync">Einkünfte anpassen</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    Einkommen
-                </div>
-                <div class="card-body">
-                    <p role="status">👨‍💼 Manpower: @currentIncomeManpower</p>
-                    <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Manpower)">+1</button>
-                    <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Manpower)">-1</button>
-
-                    <p role="status" class="mt-3">💣 Ammo: @currentIncomeAmmo</p>
-                    <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Ammo)">+1</button>
-                    <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Ammo)">-1</button>
-
-                    <p role="status" class="mt-3">⛽ Fuel: @currentIncomeFuel</p>
-                    <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Fuel)">+1</button>
-                    <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Fuel)">-1</button>
-
-                    <p role="status" class="mt-3">🏆 Victory Points: @currentIncomeVictoryPoints</p>
-                    <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.VictoryPoints)">+1</button>
-                    <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.VictoryPoints)">-1</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    Lager
-                </div>
-                <div class="card-body">
-                    <p role="status">👨‍💼 Manpower: @currentCountManpower</p>
-                    <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Manpower)">-1</button>
-
-                    <p role="status" class="mt-3">💣 Ammo: @currentCountAmmo</p>
-                    <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Ammo)">-1</button>
-
-                    <p role="status" class="mt-3">⛽ Fuel: @currentCountFuel</p>
-                    <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Fuel)">-1</button>
-
-                    <p role="status" class="mt-3">🏆 Victory Points: @currentCountVictoryPoints</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 @code {
@@ -168,27 +216,45 @@
         }
     }
 
-    private void BuyOne(StockpileType type)
+    private void UndoOne(StockpileType type)
     {
         var stock = db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
-        if (stock.Amount > 0)
-        {
-            stock.Amount--;
-            db.Stockpile.Update(stock);
 
-            switch (type)
-            {
-                case StockpileType.Manpower:
-                    currentCountManpower--;
-                    break;
-                case StockpileType.Ammo:
-                    currentCountAmmo--;
-                    break;
-                case StockpileType.Fuel:
-                    currentCountFuel--;
-                    break;
-            }
+        switch (type)
+        {
+            case StockpileType.Manpower:
+                if (currentCountManpower < stock.Amount)
+                    currentCountManpower++;
+                break;
+            case StockpileType.Ammo:
+                if (currentCountAmmo < stock.Amount)
+                    currentCountAmmo++;
+                break;
+            case StockpileType.Fuel:
+                if (currentCountFuel < stock.Amount)
+                    currentCountFuel++;
+                break;
         }
+    }
+
+    private void BuyOne(StockpileType type)
+    {
+        switch (type)
+        {
+            case StockpileType.Manpower:
+                if (currentCountManpower > 0)
+                    currentCountManpower--;
+                break;
+            case StockpileType.Ammo:
+                if (currentCountAmmo > 0)
+                    currentCountAmmo--;
+                break;
+            case StockpileType.Fuel:
+                if (currentCountFuel > 0)
+                    currentCountFuel--;
+                break;
+        }
+
     }
 
     private void Init()
@@ -230,6 +296,18 @@
 
     private async Task NewRoundAsync(MouseEventArgs e)
     {
+        var stockManpower = db.Stockpile.FindOne(x => x.Type == StockpileType.Manpower && x.Round == currentRound);
+        var stockAmmo = db.Stockpile.FindOne(x => x.Type == StockpileType.Ammo && x.Round == currentRound);
+        var stockFuel = db.Stockpile.FindOne(x => x.Type == StockpileType.Fuel && x.Round == currentRound);
+
+        stockManpower.Amount = currentCountManpower;
+        stockAmmo.Amount = currentCountAmmo;
+        stockFuel.Amount = currentCountFuel;
+
+        db.Stockpile.Update(stockManpower);
+        db.Stockpile.Update(stockAmmo);
+        db.Stockpile.Update(stockFuel);
+
         var incomeManpower = db.Income.FindOne(x => x.Type == StockpileType.Manpower && x.Round == currentRound).Amount;
         var incomeAmmo = db.Income.FindOne(x => x.Type == StockpileType.Ammo && x.Round == currentRound).Amount;
         var incomeFuel = db.Income.FindOne(x => x.Type == StockpileType.Fuel && x.Round == currentRound).Amount;
@@ -256,11 +334,16 @@
 
         if (!changed.Any())
         {
-            confirmed = await JS.InvokeAsync<bool>("confirm", "Nächste Runde? Die Front ist unverändert! ");
+            confirmed = await dialog.ShowAsync(
+       title: "Alles erledigt?",
+       message1: "Nächste Runde? Die Front ist unverändert!");
+
         }
         else
         {
-            confirmed = await JS.InvokeAsync<bool>("confirm", "Nächste Runde? Es gab Änderungen an der HKL: " + Environment.NewLine + string.Join(Environment.NewLine, changed));
+            confirmed = await dialog.ShowAsync(
+       title: "Alles erledigt?",
+       message1: "Nächste Runde? Es gab Änderungen an der HKL: " + Environment.NewLine + string.Join(Environment.NewLine, changed));
         }
 
         if (confirmed)
@@ -284,21 +367,25 @@
             await db.SaveDatabaseAsync();
         }
     }
+    private ConfirmDialog dialog = default!;
 
     private async Task NewGameAsync(MouseEventArgs e)
     {
-        var confirmed = await JS.InvokeAsync<bool>("confirm", "Wirklich neues Gefecht? ");
-        if (confirmed)
+
+        var confirmation = await dialog.ShowAsync(
+           title: "Neues Gefecht?",
+           message1: "Wirklich neues Gefecht satrten?");
+
+        if (confirmation)
         {
             db.Income.DeleteAll();
             db.Stockpile.DeleteAll();
             db.Fuks.DeleteAll();
-
             await db.SaveDatabaseAsync();
-
             Init();
             Load();
         }
+
     }
 
     public string WithPlus(int val)

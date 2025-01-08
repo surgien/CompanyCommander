@@ -12,5 +12,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddScoped<AppDbContext>();
+builder.Services.AddBlazorBootstrap(); // Registriert den ModalService
 
 await builder.Build().RunAsync();
