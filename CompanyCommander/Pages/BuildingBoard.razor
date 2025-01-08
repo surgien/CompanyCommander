@@ -8,11 +8,20 @@
 <PageTitle>Counter</PageTitle>
 
 <h1>BuildingBoard</h1>
+
 <button class="btn btn-primary" @onclick="NewGameAsync">Neues Spiel</button>
 
 <p role="status">Runde: @currentRound</p>
 
+<p>Reihenfogle:</p>
+<ol>
+    <li>Einkommen ggfs. anpassen</li>
+    <li>Siegpunkte ggfs. durch FUKs anpassen</li>
+    <li>Einkünfte anpassen</li>
+    <li>Kaufen</li>
+</ol>
 
+<br />
 <p role="status">Einkommen Manpower: @currentIncomeManpower</p>
 <button class="btn btn-primary" @onclick="() => IncrementCount(StockpileType.Manpower)">+1</button>
 <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Manpower)">-1</button>
@@ -31,7 +40,10 @@
 
 <br />
 <br />
-<button class="btn btn-primary" @onclick="NewRoundAsync">Nächste Runde (Einkünfte werden angepasst)</button>
+<button class="btn btn-primary" @onclick="GainVp">Kill +1</button>
+<br />
+<br />
+<button class="btn btn-primary" @onclick="NewRoundAsync">Einkünfte anpassen</button>
 
 
 <p role="status">Lager Manpower: @currentCountManpower</p>
@@ -41,7 +53,7 @@
 <p role="status">Lager Fuel: @currentCountFuel</p>
 <button class="btn btn-primary" @onclick="() => BuyOne(StockpileType.Fuel)">-1</button>
 <p role="status">Lager Victory-Points: @currentCountVictoryPoints</p>
-<button class="btn btn-primary" @onclick="GainVp">+1</button>
+
 
 
 @code {

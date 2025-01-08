@@ -75,8 +75,8 @@ else
 
         foreach (var group in inc)
         {
-            var key = group.Key - 1;
-            var fuk = db.Fuks.Find(f => f.Round == key).ToList();
+            var key = group.Key;
+            var fuk = db.Fuks.Find(f => f.Round == key - 1).ToList();
             var r = new RoundInfo()
                 {
                     Round = group.Key - 1,
@@ -86,6 +86,7 @@ else
                     FukCount = fuk.Count()
                 };
 
+            // key += 2;
             var s = stocks.Where(i => i.Key == key).SingleOrDefault();
 
             if (s != null)
