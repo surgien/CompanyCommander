@@ -21,40 +21,37 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>Runde</th>
-                <th>Uhrzeit</th>
-
-                <th>Einkommen Manpower</th>
-                <th>Einkommen Ammo</th>
-                <th>Einkommen Fuel</th>
-                <th>Einkommen VictoryPoints</th>
-
-                <th>Lager Manpower</th>
-                <th>Lager Ammo</th>
-                <th>Lager Fuel</th>
-                <th>Lager VictoryPoints</th>
-
-                <th>FUKs</th>
+                <th rowspan="2">Runde</th>
+                <th rowspan="2">Uhrzeit</th>
+                <th colspan="4">Einkommen</th>
+                <th colspan="4">Lager</th>
+                <th rowspan="2">🛠 FUKs</th>
+            </tr>
+            <tr>
+                <th>👨‍👩‍👧‍👦 Manpower</th>
+                <th>💣 Ammo</th>
+                <th>⛽ Fuel</th>
+                <th>🏆 VictoryPoints</th>
+                <th>👨‍👩‍👧‍👦 Manpower</th>
+                <th>💣 Ammo</th>
+                <th>⛽ Fuel</th>
+                <th>🏆 VictoryPoints</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var round in _rounds)
             {
                 <tr>
-
                     <td>@round.Round</td>
                     <td>@round.Date</td>
-
                     <td>@round.Income.Where(i => i.Type == StockpileType.Manpower).Single().Amount</td>
                     <td>@round.Income.Where(i => i.Type == StockpileType.Ammo).Single().Amount</td>
                     <td>@round.Income.Where(i => i.Type == StockpileType.Fuel).Single().Amount</td>
                     <td>@round.Income.Where(i => i.Type == StockpileType.VictoryPoints).Single().Amount</td>
-
                     <td>@round.Stockpile.Where(s => s.Type == StockpileType.Manpower).Single().Amount</td>
                     <td>@round.Stockpile.Where(s => s.Type == StockpileType.Ammo).Single().Amount</td>
                     <td>@round.Stockpile.Where(s => s.Type == StockpileType.Fuel).Single().Amount</td>
                     <td>@round.Stockpile.Where(s => s.Type == StockpileType.VictoryPoints).Single().Amount</td>
-
                     <td>@round.FukCount</td>
                 </tr>
             }
@@ -86,7 +83,6 @@ else
                     FukCount = fuk.Count()
                 };
 
-            // key += 2;
             var s = stocks.Where(i => i.Key == key).SingleOrDefault();
 
             if (s != null)
@@ -95,7 +91,6 @@ else
             }
             else
             {
-                //Initialwerte:
                 r.Stockpile = new List<Stockpile>() {
                 new Stockpile(){ Amount=4, Type=StockpileType.VictoryPoints},
                 new Stockpile(){  Amount=4,Type=StockpileType.Fuel},
@@ -112,18 +107,12 @@ else
         // forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
     }
 
-
-
     public class RoundInfo
     {
         public DateTime Date { get; set; }
-
         public int Round { get; set; }
-
         public int FukCount { get; set; }
-
         public List<Income>? Income { get; set; }
-
         public List<Stockpile>? Stockpile { get; set; }
     }
 }
