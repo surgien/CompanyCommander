@@ -1,0 +1,128 @@
+﻿@page "/log"
+@using CompanyCommander.DB
+@using LiteDB
+@using System.Text
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject AppDbContext db
+
+<PageTitle>Log</PageTitle>
+
+<h1>Spielverlauf</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (_rounds == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Runde</th>
+                <th>Uhrzeit</th>
+
+                <th>Einkommen Manpower</th>
+                <th>Einkommen Ammo</th>
+                <th>Einkommen Fuel</th>
+                <th>Einkommen VictoryPoints</th>
+
+                <th>Lager Manpower</th>
+                <th>Lager Ammo</th>
+                <th>Lager Fuel</th>
+                <th>Lager VictoryPoints</th>
+
+                <th>FUKs</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var round in _rounds)
+            {
+                <tr>
+
+                    <td>@round.Round</td>
+                    <td>@round.Date</td>
+
+                    <td>@round.Income.Where(i => i.Type == StockpileType.Manpower).Single().Amount</td>
+                    <td>@round.Income.Where(i => i.Type == StockpileType.Ammo).Single().Amount</td>
+                    <td>@round.Income.Where(i => i.Type == StockpileType.Fuel).Single().Amount</td>
+                    <td>@round.Income.Where(i => i.Type == StockpileType.VictoryPoints).Single().Amount</td>
+
+                    <td>@round.Stockpile.Where(s => s.Type == StockpileType.Manpower).Single().Amount</td>
+                    <td>@round.Stockpile.Where(s => s.Type == StockpileType.Ammo).Single().Amount</td>
+                    <td>@round.Stockpile.Where(s => s.Type == StockpileType.Fuel).Single().Amount</td>
+                    <td>@round.Stockpile.Where(s => s.Type == StockpileType.VictoryPoints).Single().Amount</td>
+
+                    <td>@round.FukCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<RoundInfo>? _rounds;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await db.LoadDatabaseAsync();
+
+        var stocks = db.Stockpile.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(s => s.Key).ToList();
+        var inc = db.Income.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(s => s.Key).ToList();
+        var rounds = new List<RoundInfo>();
+
+        foreach (var group in inc)
+        {
+            var key = group.Key - 1;
+            var fuk = db.Fuks.Find(f => f.Round == key).ToList();
+            var r = new RoundInfo()
+                {
+                    Round = group.Key - 1,
+                    Date = group.First().Date,
+
+                    Income = group.ToList(),
+                    FukCount = fuk.Count()
+                };
+
+            var s = stocks.Where(i => i.Key == key).SingleOrDefault();
+
+            if (s != null)
+            {
+                r.Stockpile = s.ToList();
+            }
+            else
+            {
+                //Initialwerte:
+                r.Stockpile = new List<Stockpile>() {
+                new Stockpile(){ Amount=4, Type=StockpileType.VictoryPoints},
+                new Stockpile(){  Amount=4,Type=StockpileType.Fuel},
+                new Stockpile(){  Amount=4,Type=StockpileType.Manpower},
+                new Stockpile(){  Amount=4,Type=StockpileType.Ammo}
+                };
+            }
+            rounds.Add(r);
+        }
+
+        _rounds = rounds;
+        // await localStorage.SetItemAsync("Database", jsonString);
+
+        // forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+    }
+
+
+
+    public class RoundInfo
+    {
+        public DateTime Date { get; set; }
+
+        public int Round { get; set; }
+
+        public int FukCount { get; set; }
+
+        public List<Income>? Income { get; set; }
+
+        public List<Stockpile>? Stockpile { get; set; }
+    }
+}

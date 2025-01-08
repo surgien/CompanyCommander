@@ -25,7 +25,8 @@ namespace CompanyCommander.DB {
     public int Amount { get; set; }
     public StockpileType Type { get; set; }
     [BsonId]
-    public ObjectId Id { get; set; }
+    public Guid Id { get; set; }
+    public DateTime Date { get; set; }
   }
 
   public class Income {
@@ -33,13 +34,22 @@ namespace CompanyCommander.DB {
     public int Amount { get; set; }
     public StockpileType Type { get; set; }
     [BsonId]
-    public ObjectId Id { get; set; }
+    public Guid Id { get; set; }
+    public DateTime Date { get; set; }
+  }
+
+  public class Fuk {
+    [BsonId]
+    public Guid Id { get; set; }
+    public int Round { get; set; }
+    public DateTime Date { get; set; }
   }
 
   public class AppDbContext {
 
     public ILiteCollection<Stockpile> Stockpile => Database.GetCollection<Stockpile>();
     public ILiteCollection<Income> Income => Database.GetCollection<Income>();
+    public ILiteCollection<Fuk> Fuks => Database.GetCollection<Fuk>();
 
 
 
@@ -51,28 +61,28 @@ namespace CompanyCommander.DB {
     }
 
     private readonly ILocalStorageService _localStorage;
-    private MemoryStream _memoryStream;
+    public MemoryStream MemoryStream { get; set; }
 
     public async Task LoadDatabaseAsync() {
       var dbContent = await _localStorage.GetItemAsync<string>(nameof(AppDbContext));
 
-      _memoryStream = new MemoryStream();
+      MemoryStream = new MemoryStream();
 
       if (dbContent != null) {
         var bytes = Convert.FromBase64String(dbContent);
-        _memoryStream = new MemoryStream(bytes);
+        MemoryStream = new MemoryStream(bytes);
       }
 
-      Database = new LiteDatabase(_memoryStream);
+      Database = new LiteDatabase(MemoryStream);
     }
 
     public async Task SaveDatabaseAsync() {
       Database.Commit();
       Database.Checkpoint();
 
-      _memoryStream.Position = 0;
+      MemoryStream.Position = 0;
 
-      var jsonString = Convert.ToBase64String(_memoryStream.ToArray());
+      var jsonString = Convert.ToBase64String(MemoryStream.ToArray());
       await _localStorage.SetItemAsync(nameof(AppDbContext), jsonString);
     }
   }
