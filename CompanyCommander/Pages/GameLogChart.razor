@@ -1,0 +1,110 @@
+﻿@page "/chart"
+@using BlazorBootstrap
+@using CompanyCommander.DB
+@inject AppDbContext db
+
+<div class="container-fluid overflow-x-auto">
+    <LineChart @ref="lineChart" Width="800" />
+</div>
+
+<div class="mt-5">
+    <Button Type="ButtonType.Button" Color="ButtonColor.Primary" Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowHorizontalLineChartAsync()"> Horizontal Line Chart </Button>
+    <Button Type="ButtonType.Button" Color="ButtonColor.Primary" Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowVerticalLineChartAsync()"> Vertical Line Chart </Button>
+</div>
+
+@code {
+    private LineChart lineChart = default!;
+    private LineChartOptions lineChartOptions = default!;
+    private ChartData chartData = default!;
+
+    private int datasetsCount;
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task ShowHorizontalLineChartAsync()
+    {
+        lineChartOptions.IndexAxis = "y";
+        await lineChart.UpdateAsync(chartData, lineChartOptions);
+    }
+
+    private async Task ShowVerticalLineChartAsync()
+    {
+        lineChartOptions.IndexAxis = "x";
+        await lineChart.UpdateAsync(chartData, lineChartOptions);
+    }
+
+    #region Data Preparation
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await db.LoadDatabaseAsync();
+
+        _stocks = db.Stockpile.Find(s => s.Round != 1).GroupBy(s => s.Type).ToList();
+
+        chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
+        // var inc = db.Income.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(s => s.Key).ToList();
+
+        foreach (var round in db.Stockpile.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(si => si.Key))
+        {
+
+            if (round.Key > 1)
+            {
+                var data = new List<IChartDatasetData>();
+                foreach (var art in round.GroupBy(r => r.Type))
+                {
+                    {
+                        data.Add(new LineChartDatasetData(art.Key.ToString(), art.Single().Amount));
+                    }
+                }
+
+                chartData = await lineChart.AddDataAsync(chartData, $"Runde {round.Key.ToString()}", data);
+            }
+        }
+
+        lineChartOptions = new()
+            {
+                IndexAxis = "x",
+                Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
+                Responsive = true,
+            };
+        await lineChart.InitializeAsync(chartData, lineChartOptions);
+    }
+
+    private List<IGrouping<StockpileType, Stockpile>> _stocks;
+
+    private List<IChartDataset> GetDataSets()
+    {
+        var datasets = new List<IChartDataset>();
+
+
+        foreach (var group in _stocks)
+        {
+            var c = ColorUtility.CategoricalTwelveColors[datasetsCount].ToColor();
+
+            datasetsCount += 1;
+
+            var l = new LineChartDataset
+                {
+                    Label = group.Key.ToString(),
+                    Data = new List<double?>(),//Die Werte von der Art
+                    BackgroundColor = c.ToRgbaString(),
+                    BorderColor = c.ToRgbString(),
+                    PointRadius = new List<double> { 5 },
+                    PointHoverRadius = new List<double> { 8 },
+                };
+
+            datasets.Add(l);
+        }
+
+        return datasets;
+    }
+
+
+    #endregion Data Preparation
+
+}
