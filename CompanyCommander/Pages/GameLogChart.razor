@@ -10,6 +10,20 @@
 <div class="mt-5">
     <Button Type="ButtonType.Button" Color="ButtonColor.Primary" Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowHorizontalLineChartAsync()"> Horizontal Line Chart </Button>
     <Button Type="ButtonType.Button" Color="ButtonColor.Primary" Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowVerticalLineChartAsync()"> Vertical Line Chart </Button>
+
+
+
+    <Button Type="ButtonType.Button" Color="ButtonColor.Primary"
+            Active="false"
+            Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowEinkommenAsync()">
+        Einkommen
+    </Button>
+
+    <Button Type="ButtonType.Button" Color="ButtonColor.Primary"
+            Active="false"
+            Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowLagerAsync()">
+        Lager
+    </Button>
 </div>
 
 @code {
@@ -19,6 +33,20 @@
 
     private int datasetsCount;
 
+    public async Task ShowEinkommenAsync()
+    {
+        datasetsCount = 0;
+        chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
+        await LoadEinkommenAsync();
+        await lineChart.UpdateAsync(chartData, lineChartOptions);
+    }
+    public async Task ShowLagerAsync()
+    {
+        datasetsCount = 0;
+        chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
+        await LoadLagerAsync();
+        await lineChart.UpdateAsync(chartData, lineChartOptions);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -48,7 +76,12 @@
 
         chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
         // var inc = db.Income.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(s => s.Key).ToList();
+        await LoadLagerAsync();
+        await lineChart.InitializeAsync(chartData, lineChartOptions);
+    }
 
+    public async Task LoadLagerAsync()
+    {
         foreach (var round in db.Stockpile.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(si => si.Key))
         {
 
@@ -72,7 +105,33 @@
                 Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
                 Responsive = true,
             };
-        await lineChart.InitializeAsync(chartData, lineChartOptions);
+    }
+
+    public async Task LoadEinkommenAsync()
+    {
+        foreach (var round in db.Income.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(si => si.Key))
+        {
+
+            if (round.Key > 1)
+            {
+                var data = new List<IChartDatasetData>();
+                foreach (var art in round.GroupBy(r => r.Type))
+                {
+                    {
+                        data.Add(new LineChartDatasetData(art.Key.ToString(), art.Single().Amount));
+                    }
+                }
+
+                chartData = await lineChart.AddDataAsync(chartData, $"Runde {round.Key.ToString()}", data);
+            }
+        }
+
+        lineChartOptions = new()
+            {
+                IndexAxis = "x",
+                Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
+                Responsive = true,
+            };
     }
 
     private List<IGrouping<StockpileType, Stockpile>> _stocks;
