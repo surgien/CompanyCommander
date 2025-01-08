@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using BlazorBootstrap
+@using CompanyCommander.Components
 @using CompanyCommander.DB
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject AppDbContext db
@@ -341,9 +342,14 @@
         }
         else
         {
-            confirmed = await dialog.ShowAsync(
+            var parameters = new Dictionary<string, object>();
+            parameters.Add("Items", changed);
+            parameters.Add("Title", "Nächste Runde? Es gab Änderungen an der HKL:");
+
+            confirmed = await dialog.ShowAsync<NextRoundDialog>(
        title: "Alles erledigt?",
-       message1: "Nächste Runde? Es gab Änderungen an der HKL: " + Environment.NewLine + string.Join(Environment.NewLine, changed));
+       parameters: parameters
+            );
         }
 
         if (confirmed)
