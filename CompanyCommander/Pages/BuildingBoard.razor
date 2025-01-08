@@ -11,9 +11,6 @@
 
 <div class="container">
     <div class="row mb-3">
-        <div class="col">
-            <button class="btn btn-primary" @onclick="NewGameAsync">Neues Spiel</button>
-        </div>
         <div class="col text-end">
             <p role="status">Runde: @currentRound</p>
         </div>
@@ -30,6 +27,38 @@
             </ol>
         </div>
     </div>
+
+    <div class="row mb-3">
+        <div class="row mb-3">
+            <div class="col">
+                <div class="row mb-3">
+                    <div class="col">
+                        <button class="btn btn-primary me-2" @onclick="NewGameAsync">Neues Spiel</button>
+                    </div>
+                    <div class="col text-end">
+                        <button class="btn btn-primary me-2" @onclick="GainVp">Kill +1</button>
+                        <button class="btn btn-primary" @onclick="NewRoundAsync">Einkünfte anpassen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+@*     <div class="row mb-3">
+        <div class="col">
+            <button class="btn btn-primary" @onclick="GainVp">Kill +1</button>
+        </div>
+    </div>
+
+
+    <div class="row mb-3">
+        <div class="col">
+            <button class="btn btn-primary" @onclick="NewRoundAsync">Einkünfte anpassen</button>
+        </div>
+    </div> *@
+
+
 
     <div class="row">
         <div class="col-md-6 mb-3">
@@ -78,17 +107,6 @@
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col">
-            <button class="btn btn-primary" @onclick="GainVp">Kill +1</button>
-        </div>
-    </div>
-
-    <div class="row mb-3">
-        <div class="col">
-            <button class="btn btn-primary" @onclick="NewRoundAsync">Einkünfte anpassen</button>
-        </div>
-    </div>
 </div>
 
 @code {
