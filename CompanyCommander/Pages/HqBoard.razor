@@ -2,6 +2,7 @@
 @using BlazorBootstrap
 @using CompanyCommander.Components
 @using CompanyCommander.DB
+@using CompanyCommander.Model
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject AppDbContext db
 @implements IDisposable
@@ -71,7 +72,7 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">🪖 Manpower: +@currentIncomeManpower</p>
+                            <p role="status">🪖 Manpower: +@currentIncome.Manpower</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Manpower)">+1</button>
@@ -81,7 +82,7 @@
 
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">💣 Ammo: +@currentIncomeAmmo</p>
+                            <p role="status">💣 Ammo: +@currentIncome.Ammo</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Ammo)">+1</button>
@@ -91,7 +92,7 @@
 
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">⛽ Fuel: +@currentIncomeFuel</p>
+                            <p role="status">⛽ Fuel: +@currentIncome.Fuel</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.Fuel)">+1</button>
@@ -101,7 +102,7 @@
 
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">🏆 Victory Points: +@currentIncomeVictoryPoints</p>
+                            <p role="status">🏆 Victory Points: +@currentIncome.VictoryPoints</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary me-2" @onclick="() => IncrementCount(StockpileType.VictoryPoints)">+1</button>
@@ -199,16 +200,15 @@
 @code {
     private int targetVpPick = 15;
 
-    //Initiale erste Runde:
-    private int currentIncomeManpower;
-    private int currentIncomeAmmo;
-    private int currentIncomeFuel;
-    private int currentIncomeVictoryPoints;
+    private IncomeModel currentIncome = new IncomeModel();
+
     private int currentCountManpower;
     private int currentCountAmmo;
     private int currentCountFuel;
     private int currentCountVictoryPoints;
+
     private int currentRound;
+
     private Game currentGame;
     private Modal modal = default!;
     private Modal modalVpQuestion = default!;
@@ -242,16 +242,16 @@
         switch (type)
         {
             case StockpileType.Manpower:
-                currentIncomeManpower++;
+                currentIncome.Manpower++;
                 break;
             case StockpileType.Ammo:
-                currentIncomeAmmo++;
+                currentIncome.Ammo++;
                 break;
             case StockpileType.Fuel:
-                currentIncomeFuel++;
+                currentIncome.Fuel++;
                 break;
             case StockpileType.VictoryPoints:
-                currentIncomeVictoryPoints++;
+                currentIncome.VictoryPoints++;
                 break;
         }
     }
@@ -261,20 +261,20 @@
         switch (type)
         {
             case StockpileType.Manpower:
-                if (currentIncomeManpower > 0)
-                    currentIncomeManpower--;
+                if (currentIncome.Manpower > 0)
+                    currentIncome.Manpower--;
                 break;
             case StockpileType.Ammo:
-                if (currentIncomeAmmo > 0)
-                    currentIncomeAmmo--;
+                if (currentIncome.Ammo > 0)
+                    currentIncome.Ammo--;
                 break;
             case StockpileType.Fuel:
-                if (currentIncomeFuel > 0)
-                    currentIncomeFuel--;
+                if (currentIncome.Fuel > 0)
+                    currentIncome.Fuel--;
                 break;
             case StockpileType.VictoryPoints:
-                if (currentIncomeVictoryPoints > 0)
-                    currentIncomeVictoryPoints--;
+                if (currentIncome.VictoryPoints > 0)
+                    currentIncome.VictoryPoints--;
                 break;
         }
     }
@@ -282,7 +282,6 @@
     private async Task UndoOne(StockpileType type)
     {
         var stock = db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
-
 
         if (stock.Amount < stock.InitialAmount)
         {
@@ -307,8 +306,6 @@
                 break;
         }
     }
-
-
 
     private async Task BuyOne(StockpileType type)
     {
@@ -336,7 +333,6 @@
                     currentCountFuel--;
                 break;
         }
-
     }
 
     private async Task Init(GameEdition edition, bool withDialog = true)
@@ -357,10 +353,10 @@
             _vps = new List<int> { 13, 15, 18 };
         }
 
-        currentIncomeManpower = 1;
-        currentIncomeAmmo = 1;
-        currentIncomeFuel = 1;
-        currentIncomeVictoryPoints = 0;
+        currentIncome.Manpower = 1;
+        currentIncome.Ammo = 1;
+        currentIncome.Fuel = 1;
+        currentIncome.VictoryPoints = 0;
 
         currentCountVictoryPoints = 0;
         currentRound = 1;
@@ -378,16 +374,15 @@
         {
             await modalVpQuestion.ShowAsync();
         }
-
     }
 
     private void Load()
     {
         currentRound = db.Income.Max(x => x.Round);
-        currentIncomeManpower = db.Income.FindOne(x => x.Type == StockpileType.Manpower && x.Round == currentRound).Amount;
-        currentIncomeAmmo = db.Income.FindOne(x => x.Type == StockpileType.Ammo && x.Round == currentRound).Amount;
-        currentIncomeFuel = db.Income.FindOne(x => x.Type == StockpileType.Fuel && x.Round == currentRound).Amount;
-        currentIncomeVictoryPoints = db.Income.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound).Amount;
+        currentIncome.Manpower = db.Income.FindOne(x => x.Type == StockpileType.Manpower && x.Round == currentRound).Amount;
+        currentIncome.Ammo = db.Income.FindOne(x => x.Type == StockpileType.Ammo && x.Round == currentRound).Amount;
+        currentIncome.Fuel = db.Income.FindOne(x => x.Type == StockpileType.Fuel && x.Round == currentRound).Amount;
+        currentIncome.VictoryPoints = db.Income.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound).Amount;
 
         currentCountManpower = db.Stockpile.FindOne(x => x.Type == StockpileType.Manpower && x.Round == currentRound).Amount;
         currentCountAmmo = db.Stockpile.FindOne(x => x.Type == StockpileType.Ammo && x.Round == currentRound).Amount;
@@ -400,10 +395,10 @@
 
     private void NewRound()
     {
-        db.Income.Insert(new Income { Amount = currentIncomeManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-        db.Income.Insert(new Income { Amount = currentIncomeAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-        db.Income.Insert(new Income { Amount = currentIncomeFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-        db.Income.Insert(new Income { Amount = currentIncomeVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+        db.Income.Insert(new Income { Amount = currentIncome.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
+        db.Income.Insert(new Income { Amount = currentIncome.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
+        db.Income.Insert(new Income { Amount = currentIncome.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
+        db.Income.Insert(new Income { Amount = currentIncome.VictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
 
         db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountManpower, Amount = currentCountManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
         db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountAmmo, Amount = currentCountAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
@@ -431,21 +426,21 @@
         var incomeVP = db.Income.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound).Amount;
         var changed = new List<string>();
 
-        if (incomeManpower != currentIncomeManpower)
+        if (incomeManpower != currentIncome.Manpower)
         {
-            changed.Add("Manpower: " + WithPlus(currentIncomeManpower - incomeManpower));
+            changed.Add("Manpower: " + WithPlus(currentIncome.Manpower - incomeManpower));
         }
-        if (incomeAmmo != currentIncomeAmmo)
+        if (incomeAmmo != currentIncome.Ammo)
         {
-            changed.Add("Ammo: " + WithPlus(currentIncomeAmmo - incomeAmmo));
+            changed.Add("Ammo: " + WithPlus(currentIncome.Ammo - incomeAmmo));
         }
-        if (incomeFuel != currentIncomeFuel)
+        if (incomeFuel != currentIncome.Fuel)
         {
-            changed.Add("Fuel: " + WithPlus(currentIncomeFuel - incomeFuel));
+            changed.Add("Fuel: " + WithPlus(currentIncome.Fuel - incomeFuel));
         }
-        if (incomeVP != currentIncomeVictoryPoints)
+        if (incomeVP != currentIncome.VictoryPoints)
         {
-            changed.Add("VPs: " + WithPlus(currentIncomeVictoryPoints - incomeVP));
+            changed.Add("VPs: " + WithPlus(currentIncome.VictoryPoints - incomeVP));
         }
         bool confirmed = false;
 
@@ -471,10 +466,10 @@
         if (confirmed)
         {
             currentRound++;
-            currentCountManpower += currentIncomeManpower;
-            currentCountAmmo += currentIncomeAmmo;
-            currentCountFuel += currentIncomeFuel;
-            currentCountVictoryPoints += currentIncomeVictoryPoints;
+            currentCountManpower += currentIncome.Manpower;
+            currentCountAmmo += currentIncome.Ammo;
+            currentCountFuel += currentIncome.Fuel;
+            currentCountVictoryPoints += currentIncome.VictoryPoints;
 
             if (currentGame != null && currentCountVictoryPoints >= currentGame.VictoryPoints)
             {
