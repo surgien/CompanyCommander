@@ -86,6 +86,10 @@ namespace CompanyCommander.DB {
     private readonly ILocalStorageService _localStorage;
     public MemoryStream MemoryStream { get; set; }
 
+    public async Task ClearLocalStorageAsync() {
+      await _localStorage.ClearAsync();
+    }
+
     public async Task LoadDatabaseAsync() {
       var dbContent = await _localStorage.GetItemAsync<string>(nameof(AppDbContext));
 

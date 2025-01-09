@@ -44,7 +44,7 @@ else
                 {
                     <tr>
                         <td>@round.Round</td>
-                        <td>@round.Date</td>
+                        <td>@round.Date.ToString("HH:mm:ss")</td>
                         <td>@round.Income.Where(i => i.Type == StockpileType.Manpower).Single().Amount</td>
                         <td>@round.Income.Where(i => i.Type == StockpileType.Ammo).Single().Amount</td>
                         <td>@round.Income.Where(i => i.Type == StockpileType.Fuel).Single().Amount</td>
