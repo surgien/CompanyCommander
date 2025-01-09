@@ -1,5 +1,6 @@
 ﻿//using Microsoft.EntityFrameworkCore;
 
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Blazored.LocalStorage;
 using LiteDB;
@@ -20,12 +21,32 @@ namespace CompanyCommander.DB {
     VictoryPoints //er auch ...
   }
 
+  public enum GameEdition {
+    [Description("1. Edition - Normal")]
+    FirstEditionNormal,
+    [Description("1. Edition - Erweitert")]
+    FirstEditionPro,
+    [Description("1. Edition - Erweitert mit Errata")]
+    FirstEditionProWithErrata,
+    [Description("2. Edition - Normal")]
+    SecondEditionNormal
+  }
+
+  public class Game {
+
+    [BsonId]
+    public Guid Id { get; set; }
+    public GameEdition Edition { get; set; }
+    public DateTime Start { get; set; }
+    public int VictoryPoints { get; set; }
+  }
+
   public class Stockpile {
+    [BsonId]
+    public Guid Id { get; set; }
     public int Round { get; set; }
     public int Amount { get; set; }
     public StockpileType Type { get; set; }
-    [BsonId]
-    public Guid Id { get; set; }
     public DateTime Date { get; set; }
     public int InitialAmount { get; set; }
   }
@@ -51,6 +72,7 @@ namespace CompanyCommander.DB {
     public ILiteCollection<Stockpile> Stockpile => Database.GetCollection<Stockpile>();
     public ILiteCollection<Income> Income => Database.GetCollection<Income>();
     public ILiteCollection<Fuk> Fuks => Database.GetCollection<Fuk>();
+    public ILiteCollection<Game> Game => Database.GetCollection<Game>();
 
 
 

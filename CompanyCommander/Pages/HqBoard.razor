@@ -11,11 +11,31 @@
 <h1>HQ Board</h1>
 
 <ConfirmDialog @ref="dialog" />
+@*  In Modal: <BodyTemplate>...</BodyTemplate> *@
+<Modal @ref="modal" Title="Sieg!">
+    <BodyTemplate>
+        Ihr wart siegreich!
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="async ()=>await modal.HideAsync()">Close</Button>
+    </FooterTemplate>
+</Modal>
 
 <div class="container">
     <div class="row mb-3">
         <div class="col">
-            <button class="btn btn-primary me-2" @onclick="NewGameAsync">Neues Spiel</button>
+            <Dropdown Color="DropdownColor.Primary">
+                <DropdownToggleButton>Neues Spiel</DropdownToggleButton>
+                <DropdownMenu>
+                    @if (_editions != null)
+                        @foreach (var edition in _editions)
+                        {
+                            <DropdownItem Type="DropdownItemType.Button" @onclick="() =>NewGame(edition)">@edition.GetDescription()</DropdownItem>
+                        }
+                </DropdownMenu>
+            </Dropdown>
+
+            @* <button class="btn btn-primary me-2" @onclick="NewGameAsync">Neues Spiel</button> *@
         </div>
         <div class="col text-end">
             <p role="status">Runde: @currentRound</p>
@@ -76,7 +96,7 @@
                             <button class="btn btn-primary me-2" @onclick="GainVp">☠ Kill +1</button>
                         </div>
                         <div class="col text-end">
-                            <button class="btn btn-primary" @onclick="NewRoundAsync">Einkünfte anpassen</button>
+                            <button class="btn btn-primary" @onclick="NextRoundAsync">Einkünfte anpassen</button>
                         </div>
                     </div>
                 </div>
@@ -154,10 +174,15 @@
     private int currentCountFuel;
     private int currentCountVictoryPoints;
     private int currentRound;
+    private Game currentGame;
+    private Modal modal = default!;
+    private ConfirmDialog dialog = default!;
+    private List<GameEdition> _editions;
 
     protected override async Task OnInitializedAsync()
     {
         await db.LoadDatabaseAsync();
+        _editions = ((GameEdition[])Enum.GetValues(typeof(GameEdition))).ToList();
 
         if (db.Stockpile.Count() == 0)
         {
@@ -288,16 +313,9 @@
         currentCountFuel = 4;
         currentCountVictoryPoints = 0;
         currentRound = 1;
-
-        db.Income.Insert(new Income { Amount = currentIncomeManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-        db.Income.Insert(new Income { Amount = currentIncomeAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-        db.Income.Insert(new Income { Amount = currentIncomeFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-        db.Income.Insert(new Income { Amount = currentIncomeVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
-
-        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountManpower, Amount = currentCountManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountAmmo, Amount = currentCountAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountFuel, Amount = currentCountFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountVictoryPoints, Amount = currentCountVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+        NewRound();
+        db.Game.Insert(new Game() { Edition = GameEdition.FirstEditionProWithErrata, Start = DateTime.Now, VictoryPoints = 15 });
+        currentGame = db.Game.FindAll().SingleOrDefault();
     }
 
     private void Load()
@@ -313,9 +331,27 @@
         currentCountFuel = db.Stockpile.FindOne(x => x.Type == StockpileType.Fuel && x.Round == currentRound).Amount;
         currentCountVictoryPoints = db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound).Amount;
         currentCountVictoryPoints += db.Fuks.Count();
+
+        currentGame = db.Game.FindAll().SingleOrDefault();
     }
 
-    private async Task NewRoundAsync(MouseEventArgs e)
+    private void NewRound()
+    {
+
+
+        db.Income.Insert(new Income { Amount = currentIncomeManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
+        db.Income.Insert(new Income { Amount = currentIncomeAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
+        db.Income.Insert(new Income { Amount = currentIncomeFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
+        db.Income.Insert(new Income { Amount = currentIncomeVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+
+        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountManpower, Amount = currentCountManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
+        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountAmmo, Amount = currentCountAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
+        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountFuel, Amount = currentCountFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
+        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountVictoryPoints, Amount = currentCountVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+
+    }
+
+    private async Task NextRoundAsync(MouseEventArgs e)
     {
         var stockManpower = db.Stockpile.FindOne(x => x.Type == StockpileType.Manpower && x.Round == currentRound);
         var stockAmmo = db.Stockpile.FindOne(x => x.Type == StockpileType.Ammo && x.Round == currentRound);
@@ -380,22 +416,23 @@
             currentCountFuel += currentIncomeFuel;
             currentCountVictoryPoints += currentIncomeVictoryPoints;
 
-            db.Income.Insert(new Income { Amount = currentIncomeManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-            db.Income.Insert(new Income { Amount = currentIncomeAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-            db.Income.Insert(new Income { Amount = currentIncomeFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-            db.Income.Insert(new Income { Amount = currentIncomeVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+            if (currentGame != null && currentCountVictoryPoints >= currentGame.VictoryPoints)
+            {
+                //TODO: generischer modal dialog machen
+                await modal.ShowAsync();
+            }
 
-            db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountManpower, Amount = currentCountManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-            db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountAmmo, Amount = currentCountAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-            db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountFuel, Amount = currentCountFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-            db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountVictoryPoints, Amount = currentCountVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
-
+            NewRound();
             await db.SaveDatabaseAsync();
         }
     }
-    private ConfirmDialog dialog = default!;
 
-    private async Task NewGameAsync(MouseEventArgs e)
+    private async Task NewGame(GameEdition edition)
+    {
+        await NewGameAsync();
+    }
+
+    private async Task NewGameAsync()
     {
 
         var confirmation = await dialog.ShowAsync(
@@ -407,6 +444,7 @@
             db.Income.DeleteAll();
             db.Stockpile.DeleteAll();
             db.Fuks.DeleteAll();
+            db.Game.DeleteAll();
             await db.SaveDatabaseAsync();
             Init();
             Load();
