@@ -217,29 +217,48 @@
         }
     }
 
-    private void UndoOne(StockpileType type)
+    private async Task UndoOne(StockpileType type)
     {
         var stock = db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
+
+
+        if (stock.Amount < stock.InitialAmount)
+        {
+            stock.Amount++;
+            db.Stockpile.Update(stock);
+            await db.SaveDatabaseAsync();
+        }
 
         switch (type)
         {
             case StockpileType.Manpower:
-                if (currentCountManpower < stock.Amount)
+                if (currentCountManpower < stock.InitialAmount)
                     currentCountManpower++;
                 break;
             case StockpileType.Ammo:
-                if (currentCountAmmo < stock.Amount)
+                if (currentCountAmmo < stock.InitialAmount)
                     currentCountAmmo++;
                 break;
             case StockpileType.Fuel:
-                if (currentCountFuel < stock.Amount)
+                if (currentCountFuel < stock.InitialAmount)
                     currentCountFuel++;
                 break;
         }
     }
 
-    private void BuyOne(StockpileType type)
+
+
+    private async Task BuyOne(StockpileType type)
     {
+        var stock = db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
+
+        if (stock.Amount > 0)
+        {
+            stock.Amount--;
+            db.Stockpile.Update(stock);
+            await db.SaveDatabaseAsync();
+        }
+
         switch (type)
         {
             case StockpileType.Manpower:
@@ -275,10 +294,10 @@
         db.Income.Insert(new Income { Amount = currentIncomeFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
         db.Income.Insert(new Income { Amount = currentIncomeVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
 
-        db.Stockpile.Insert(new Stockpile { Amount = currentCountManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-        db.Stockpile.Insert(new Stockpile { Amount = currentCountAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-        db.Stockpile.Insert(new Stockpile { Amount = currentCountFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-        db.Stockpile.Insert(new Stockpile { Amount = currentCountVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountManpower, Amount = currentCountManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
+        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountAmmo, Amount = currentCountAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
+        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountFuel, Amount = currentCountFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
+        db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountVictoryPoints, Amount = currentCountVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
     }
 
     private void Load()
@@ -293,6 +312,7 @@
         currentCountAmmo = db.Stockpile.FindOne(x => x.Type == StockpileType.Ammo && x.Round == currentRound).Amount;
         currentCountFuel = db.Stockpile.FindOne(x => x.Type == StockpileType.Fuel && x.Round == currentRound).Amount;
         currentCountVictoryPoints = db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound).Amount;
+        currentCountVictoryPoints += db.Fuks.Count();
     }
 
     private async Task NewRoundAsync(MouseEventArgs e)
@@ -365,10 +385,10 @@
             db.Income.Insert(new Income { Amount = currentIncomeFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
             db.Income.Insert(new Income { Amount = currentIncomeVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
 
-            db.Stockpile.Insert(new Stockpile { Amount = currentCountManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-            db.Stockpile.Insert(new Stockpile { Amount = currentCountAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-            db.Stockpile.Insert(new Stockpile { Amount = currentCountFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-            db.Stockpile.Insert(new Stockpile { Amount = currentCountVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+            db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountManpower, Amount = currentCountManpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
+            db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountAmmo, Amount = currentCountAmmo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
+            db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountFuel, Amount = currentCountFuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
+            db.Stockpile.Insert(new Stockpile { InitialAmount = currentCountVictoryPoints, Amount = currentCountVictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
 
             await db.SaveDatabaseAsync();
         }
@@ -401,9 +421,10 @@
         else return "0";
     }
 
-    private void GainVp(MouseEventArgs e)
+    private async Task GainVp(MouseEventArgs e)
     {
         currentCountVictoryPoints++;
         db.Fuks.Insert(new Fuk() { Date = DateTime.Now, Round = currentRound });
+        await db.SaveDatabaseAsync();
     }
 }

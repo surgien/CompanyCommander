@@ -27,6 +27,7 @@ namespace CompanyCommander.DB {
     [BsonId]
     public Guid Id { get; set; }
     public DateTime Date { get; set; }
+    public int InitialAmount { get; set; }
   }
 
   public class Income {
