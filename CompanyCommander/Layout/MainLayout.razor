@@ -1,4 +1,17 @@
-﻿@inherits LayoutComponentBase
+﻿@using CompanyCommander.Components
+@using CompanyCommander.DB
+@using CompanyCommander.Model
+@inject AppDbContext db
+@inherits LayoutComponentBase
+@code {
+    private Game _currentGame;
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await db.LoadDatabaseAsync();
+    //     _currentGame = db.Game.FindAll().FirstOrDefault();
+    // }
+}
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -6,6 +19,8 @@
 
     <main>
         <div class="top-row px-4">
+
+            <p role="status">Runde: </p>
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
