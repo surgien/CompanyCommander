@@ -105,7 +105,7 @@ namespace CompanyCommander.DB {
 
     public async Task SaveDatabaseAsync() {
       Database.Commit();
-      Database.Checkpoint();
+      Database.Checkpoint();//TODO: Exception
 
       MemoryStream.Position = 0;
 

@@ -380,7 +380,6 @@
         currentCount.Ammo = db.Stockpile.FindOne(x => x.Type == StockpileType.Ammo && x.Round == currentRound).Amount;
         currentCount.Fuel = db.Stockpile.FindOne(x => x.Type == StockpileType.Fuel && x.Round == currentRound).Amount;
         currentCount.VictoryPoints = db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound).Amount;
-        currentCount.VictoryPoints += db.Fuks.Count();
 
         currentGame = db.Game.FindAll().SingleOrDefault();
     }
@@ -509,6 +508,15 @@
                  Load();
              };
 
+        if (edition == GameEdition.SecondEditionNormal)
+        {
+            _vps = new List<int> { 18, 21, 24, 27 };
+        }
+        else
+        {
+            _vps = new List<int> { 13, 15, 18 };
+        }
+
         await modalVpQuestion.ShowAsync();
 
         // var confirmation = await dialog.ShowAsync(
@@ -531,6 +539,10 @@
 
     private async Task GainVp(MouseEventArgs e)
     {
+        var stock = db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound);
+
+        stock.Amount++;
+        db.Stockpile.Update(stock);
         currentCount.VictoryPoints++;
         db.Fuks.Insert(new Fuk() { Date = DateTime.Now, Round = currentRound });
         await db.SaveDatabaseAsync();
