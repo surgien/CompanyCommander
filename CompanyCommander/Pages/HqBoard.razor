@@ -60,7 +60,7 @@
             <p role="status">Runde: @currentRound</p>
         </div>
         <div class="col text-end">
-            <button class="btn btn-primary me-2" @onclick="AppResetAsync">Reset App</button>
+            <button class="btn btn-primary me-2" @onclick="AppResetAsync">Reset</button>
         </div>
     </div>
 
@@ -481,9 +481,22 @@
 
     private async Task AppResetAsync()
     {
-        await db.ClearLocalStorageAsync();
-        await db.LoadDatabaseAsync();
-        await Init(GameEdition.FirstEditionProWithErrata, false);
+        var opt = new ConfirmDialogOptions()
+            {
+                YesButtonText = "Reset",
+                YesButtonColor = ButtonColor.Danger
+            };
+        var confirmation = await dialog.ShowAsync(
+           title: "Reset App?",
+           message1: "Es wird ALLES zurückgesetzt?",
+        confirmDialogOptions: opt);
+
+        if (confirmation)
+        {
+            await db.ClearLocalStorageAsync();
+            await db.LoadDatabaseAsync();
+            await Init(GameEdition.FirstEditionProWithErrata, false);
+        }
     }
 
     private async Task NewGameAsync(GameEdition edition)
