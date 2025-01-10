@@ -91,16 +91,18 @@ namespace CompanyCommander.DB {
     }
 
     public async Task LoadDatabaseAsync() {
-      var dbContent = await _localStorage.GetItemAsync<string>(nameof(AppDbContext));
+      if (Database == null) {
+        var dbContent = await _localStorage.GetItemAsync<string>(nameof(AppDbContext));
 
-      MemoryStream = new MemoryStream();
+        MemoryStream = new MemoryStream();
 
-      if (dbContent != null) {
-        var bytes = Convert.FromBase64String(dbContent);
-        MemoryStream = new MemoryStream(bytes);
+        if (dbContent != null) {
+          var bytes = Convert.FromBase64String(dbContent);
+          MemoryStream = new MemoryStream(bytes);
+        }
+
+        Database = new LiteDatabase(MemoryStream);
       }
-
-      Database = new LiteDatabase(MemoryStream);
     }
 
     public async Task SaveDatabaseAsync() {
