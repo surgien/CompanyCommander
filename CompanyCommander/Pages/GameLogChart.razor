@@ -67,12 +67,18 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // var inc = db.Income.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(s => s.Key).ToList();
+
+    }
+
+    protected async override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
         await db.LoadDatabaseAsync();
 
         _stocks = db.Stockpile.Find(s => s.Round != 1).GroupBy(s => s.Type).ToList();
 
         chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
-        // var inc = db.Income.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(s => s.Key).ToList();
         await LoadLagerAsync();
         await lineChart.InitializeAsync(chartData, lineChartOptions);
     }
@@ -88,6 +94,11 @@
                 foreach (var art in round.GroupBy(r => r.Type))
                 {
                     {
+                        if (art.Count() > 1)
+                        {
+                            var x = 2;
+                        }
+
                         data.Add(new LineChartDatasetData(art.Key.ToString(), art.Single().Amount));
                     }
                 }
