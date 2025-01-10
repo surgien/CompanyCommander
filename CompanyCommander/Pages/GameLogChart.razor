@@ -126,6 +126,10 @@
                 foreach (var art in round.GroupBy(r => r.Type))
                 {
                     {
+                        if (art.Count() > 1)
+                        {
+                            var x = 2;
+                        }
                         data.Add(new LineChartDatasetData(art.Key.ToString(), art.Single().Amount));
                     }
                 }
