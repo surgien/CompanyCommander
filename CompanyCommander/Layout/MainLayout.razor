@@ -5,27 +5,42 @@
 @inherits LayoutComponentBase
 @code {
     private Game _currentGame;
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     await db.LoadDatabaseAsync();
-    //     _currentGame = db.Game.FindAll().FirstOrDefault();
-    // }
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await db.LoadDatabaseAsync();
+        await Task.Delay(1500);
+        _currentGame = db.Game.FindAll().FirstOrDefault();
+        _isLoading = false;
+    }
 }
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+    @if (_isLoading)
+{
+    <div class="splash-screen" style="background: linear-gradient(180deg, #606060 0%, #303030f2 70%); height: 100vh;">
+        <div class="splash-screen" style="text-align: center;">
+            <img src="icon-512_v2.png" alt="Loading icon" />
+        </div>
     </div>
-
-    <main>
-        <div class="top-row px-4">
-
-            <p role="status">Runde: </p>
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+}
+else
+{
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+        <main>
+            <div class="top-row px-4">
+                <p role="status">Runde: </p>
+                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            </div>
+
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
+}
+
