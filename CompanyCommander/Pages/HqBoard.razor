@@ -21,7 +21,7 @@
     </FooterTemplate>
 </Modal>
 
-<Modal @ref="modalVpQuestion" Title="Wieviele VPs?">
+<Modal @ref="modalVpQuestion" Title="Neues Gefecht?">
     <BodyTemplate>
         Mit wievielen VPs spielt ihr?
     </BodyTemplate>
@@ -30,15 +30,17 @@
             @foreach (var vp in _vps)
             {
                 <Button Color="ButtonColor.Primary" @onclick="async () =>{
-                targetVpPick=vp;
-                currentGame.VictoryPoints=vp;
-                db.Game.Update(currentGame);
+                newGameCallback(vp);
                 await modalVpQuestion.HideAsync();
                 }">
                     @vp
                 </Button>
             }
-
+        <Button Color="ButtonColor.Secondary" @onclick="async () =>{
+                await modalVpQuestion.HideAsync();
+                }">
+            Cancel
+        </Button>
     </FooterTemplate>
 </Modal>
 
@@ -199,8 +201,6 @@
 </div>
 
 @code {
-    private int targetVpPick = 15;
-
     private IncomeModel currentIncome = new IncomeModel();
     private IncomeModel currentCount = new IncomeModel();
 
@@ -221,7 +221,7 @@
         if (db.Stockpile.Count() == 0)
         {
             //Init...
-            await Init(GameEdition.FirstEditionProWithErrata, false);
+            await Init(GameEdition.FirstEditionProWithErrata);
         }
         else
         {
@@ -332,7 +332,7 @@
         }
     }
 
-    private async Task Init(GameEdition edition, bool withDialog = true)
+    private async Task Init(GameEdition edition, int targetVpPick = 15)
     {
         //Auf Basis der Edition hier VOrgabe
         if (edition == GameEdition.SecondEditionNormal)
@@ -358,7 +358,6 @@
         currentCount.VictoryPoints = 0;
         currentRound = 1;
         NewRound();
-
         currentGame = new Game()
             {
                 Edition = GameEdition.FirstEditionProWithErrata,
@@ -366,11 +365,7 @@
                 VictoryPoints = targetVpPick
             };
         db.Game.Insert(currentGame);
-
-        if (modalVpQuestion != null && withDialog)
-        {
-            await modalVpQuestion.ShowAsync();
-        }
+        StateHasChanged();//TODO: mit @bind machen...
     }
 
     private void Load()
@@ -495,26 +490,35 @@
         {
             await db.ClearLocalStorageAsync();
             await db.LoadDatabaseAsync();
-            await Init(GameEdition.FirstEditionProWithErrata, false);
+            await Init(GameEdition.FirstEditionProWithErrata);
         }
     }
 
+    private Action<int> newGameCallback;
+
     private async Task NewGameAsync(GameEdition edition)
     {
-        var confirmation = await dialog.ShowAsync(
-           title: "Neues Gefecht?",
-           message1: "Wirklich neues Gefecht starten?");
+        newGameCallback = async vp =>
+             {
+                 db.Income.DeleteAll();
+                 db.Stockpile.DeleteAll();
+                 db.Fuks.DeleteAll();
+                 db.Game.DeleteAll();
+                 await db.SaveDatabaseAsync();
+                 await Init(edition, vp);
+                 Load();
+             };
 
-        if (confirmation)
-        {
-            db.Income.DeleteAll();
-            db.Stockpile.DeleteAll();
-            db.Fuks.DeleteAll();
-            db.Game.DeleteAll();
-            await db.SaveDatabaseAsync();
-            await Init(edition);
-            Load();
-        }
+        await modalVpQuestion.ShowAsync();
+
+        // var confirmation = await dialog.ShowAsync(
+        //    title: "Neues Gefecht?",
+        //    message1: "Wirklich neues Gefecht starten?");
+
+        // if (confirmation)
+        // {
+
+        // }
 
     }
 
