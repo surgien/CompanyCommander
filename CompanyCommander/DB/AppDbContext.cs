@@ -108,11 +108,10 @@ namespace CompanyCommander.DB {
     private static readonly SemaphoreSlim _saveSemaphore = new SemaphoreSlim(1, 1);
 
     public async Task SaveDatabaseAsync() {
-
-      Database.Commit();
-      Database.Checkpoint(); //TODO: Exception
       await _saveSemaphore.WaitAsync();
       try {
+        Database.Commit();
+        Database.Checkpoint(); //TODO: Exception
         MemoryStream.Position = 0;
 
         var jsonString = Convert.ToBase64String(MemoryStream.ToArray());
