@@ -10,7 +10,7 @@
     protected override async Task OnInitializedAsync()
     {
         await db.LoadDatabaseAsync();
-        await Task.Delay(1500);
+        await Task.Delay(100000);
         _currentGame = db.Game.FindAll().FirstOrDefault();
         _isLoading = false;
     }
@@ -18,10 +18,8 @@
 
     @if (_isLoading)
 {
-    <div class="splash-screen" style="background: linear-gradient(180deg, #606060 0%, #303030f2 70%); height: 100vh;">
-        <div class="splash-screen" style="text-align: center;">
-            <img src="icon-512_v2.png" alt="Loading icon" />
-        </div>
+    <div class="splash-screen" style="text-align: center; background: linear-gradient(180deg, #606060 0%, #303030f2 70%); height: 100vh;">
+        <img src="icon-512_v2.png" alt="Loading icon" style="max-width: 100%; height: auto;" />
     </div>
 }
 else
