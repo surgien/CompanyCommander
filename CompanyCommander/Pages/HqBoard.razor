@@ -3,26 +3,26 @@
 @using CompanyCommander.Components
 @using CompanyCommander.DB
 @using CompanyCommander.Model
-@inject GameService gameService
-@inject AppDbContext db
+@inject GameService _gameService
+@inject AppDbContext _db
 @implements IDisposable
 
 <PageTitle>HqBoard</PageTitle>
 
 <h1>HQ Board</h1>
 
-<ConfirmDialog @ref="dialog" />
+<ConfirmDialog @ref="_dialog" />
 @*  In Modal: <BodyTemplate>...</BodyTemplate> *@
-<Modal @ref="modal" Title="Sieg!">
+<Modal @ref="_modal" Title="Sieg!">
     <BodyTemplate>
         Ihr wart siegreich!
     </BodyTemplate>
     <FooterTemplate>
-        <Button Color="ButtonColor.Secondary" @onclick="async ()=>await modal.HideAsync()">Close</Button>
+        <Button Color="ButtonColor.Secondary" @onclick="async ()=>await _modal.HideAsync()">Close</Button>
     </FooterTemplate>
 </Modal>
 
-<Modal @ref="modalVpQuestion" Title="Neues Gefecht?">
+<Modal @ref="_modalVpQuestion" Title="Neues Gefecht?">
     <BodyTemplate>
         Mit wievielen VPs spielt ihr?
     </BodyTemplate>
@@ -31,14 +31,14 @@
             @foreach (var vp in _vps)
             {
                 <Button Color="ButtonColor.Primary" @onclick="async () =>{
-                newGameCallback(vp);
-                await modalVpQuestion.HideAsync();
+                _newGameCallback(vp);
+                await _modalVpQuestion.HideAsync();
                 }">
                     @vp
                 </Button>
             }
         <Button Color="ButtonColor.Secondary" @onclick="async () =>{
-                await modalVpQuestion.HideAsync();
+                await _modalVpQuestion.HideAsync();
                 }">
             Cancel
         </Button>
@@ -54,13 +54,13 @@
                     @if (_editions != null)
                         @foreach (var edition in _editions)
                         {
-                            <DropdownItem Type="DropdownItemType.Button" @onclick="() =>NewGameAsync(edition)">@edition.GetDescription()</DropdownItem>
+                            <DropdownItem Type="DropdownItemType.Button" @onclick="() => NewGameAsync(edition)">@edition.GetDescription()</DropdownItem>
                         }
                 </DropdownMenu>
             </Dropdown>
         </div>
         <div class="col text-center">
-            <p role="status">Runde: @currentRound</p>
+            <p role="status">Runde: @_currentRound</p>
         </div>
         <div class="col text-end">
             <button class="btn btn-primary me-2" @onclick="AppResetAsync">Reset</button>
@@ -76,7 +76,7 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">🪖 Manpower: +@currentIncome.Manpower</p>
+                            <p role="status">🪖 Manpower: +@_currentIncome.Manpower</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Manpower)">-1</button>
@@ -86,7 +86,7 @@
 
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">💣 Ammo: +@currentIncome.Ammo</p>
+                            <p role="status">💣 Ammo: +@_currentIncome.Ammo</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Ammo)">-1</button>
@@ -96,7 +96,7 @@
 
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">⛽ Fuel: +@currentIncome.Fuel</p>
+                            <p role="status">⛽ Fuel: +@_currentIncome.Fuel</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.Fuel)">-1</button>
@@ -106,7 +106,7 @@
 
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">🏆 Victory Points: +@currentIncome.VictoryPoints</p>
+                            <p role="status">🏆 Victory Points: +@_currentIncome.VictoryPoints</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary" @onclick="() => DecrementCount(StockpileType.VictoryPoints)">-1</button>
@@ -136,7 +136,7 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">🪖 Manpower: @currentCount.Manpower</p>
+                            <p role="status">🪖 Manpower: @_currentCount.Manpower</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Manpower)">-1</button>
@@ -146,7 +146,7 @@
 
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status">💣 Ammo: @currentCount.Ammo</p>
+                            <p role="status">💣 Ammo: @_currentCount.Ammo</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Ammo)">-1</button>
@@ -156,7 +156,7 @@
 
                     <div class="row mb-3">
                         <div class="col text-start">
-                            <p role="status" class="mt-3">⛽ Fuel: @currentCount.Fuel</p>
+                            <p role="status" class="mt-3">⛽ Fuel: @_currentCount.Fuel</p>
                         </div>
                         <div class="col text-end">
                             <button class="btn btn-primary me-2" @onclick="() => BuyOne(StockpileType.Fuel)">-1</button>
@@ -167,16 +167,16 @@
                     <div class="row mb-3">
                         <div class="col text-start">
 
-                            @if (currentGame != null)
+                            @if (_currentGame != null)
                             {
                                 <p role="status" class="mt-3">
-                                    🏆 Victory Points: @currentCount.VictoryPoints / @currentGame.VictoryPoints
+                                    🏆 Victory Points: @_currentCount.VictoryPoints / @_currentGame.VictoryPoints
                                 </p>
                             }
                             else
                             {
                                 <p role="status" class="mt-3">
-                                    🏆 Victory Points: @currentCount.VictoryPoints
+                                    🏆 Victory Points: @_currentCount.VictoryPoints
                                 </p>
                             }
 
@@ -202,24 +202,23 @@
 </div>
 
 @code {
-    private IncomeModel currentIncome = new IncomeModel();
-    private IncomeModel currentCount = new IncomeModel();
-
-    private int currentRound;
-
-    private Game currentGame;
-    private Modal modal = default!;
-    private Modal modalVpQuestion = default!;
-    private ConfirmDialog dialog = default!;
+    private IncomeModel _currentIncome = new IncomeModel();
+    private IncomeModel _currentCount = new IncomeModel();
+    private int _currentRound;
+    private Game _currentGame;
+    private Modal _modal = default!;
+    private Modal _modalVpQuestion = default!;
+    private ConfirmDialog _dialog = default!;
     private List<GameEdition> _editions;
     private List<int> _vps;
+    private Action<int> _newGameCallback;
 
     protected override async Task OnInitializedAsync()
     {
-        await db.LoadDatabaseAsync();
+        await _db.LoadDatabaseAsync();
         _editions = ((GameEdition[])Enum.GetValues(typeof(GameEdition))).ToList();
 
-        if (db.Stockpile.Count() == 0)
+        if (_db.Stockpile.Count() == 0)
         {
             //Init...
             await Init(GameEdition.FirstEditionProWithErrata);
@@ -240,16 +239,16 @@
         switch (type)
         {
             case StockpileType.Manpower:
-                currentIncome.Manpower++;
+                _currentIncome.Manpower++;
                 break;
             case StockpileType.Ammo:
-                currentIncome.Ammo++;
+                _currentIncome.Ammo++;
                 break;
             case StockpileType.Fuel:
-                currentIncome.Fuel++;
+                _currentIncome.Fuel++;
                 break;
             case StockpileType.VictoryPoints:
-                currentIncome.VictoryPoints++;
+                _currentIncome.VictoryPoints++;
                 break;
         }
     }
@@ -259,87 +258,87 @@
         switch (type)
         {
             case StockpileType.Manpower:
-                if (currentIncome.Manpower > 0)
-                    currentIncome.Manpower--;
+                if (_currentIncome.Manpower > 0)
+                    _currentIncome.Manpower--;
                 break;
             case StockpileType.Ammo:
-                if (currentIncome.Ammo > 0)
-                    currentIncome.Ammo--;
+                if (_currentIncome.Ammo > 0)
+                    _currentIncome.Ammo--;
                 break;
             case StockpileType.Fuel:
-                if (currentIncome.Fuel > 0)
-                    currentIncome.Fuel--;
+                if (_currentIncome.Fuel > 0)
+                    _currentIncome.Fuel--;
                 break;
             case StockpileType.VictoryPoints:
-                if (currentIncome.VictoryPoints > 0)
-                    currentIncome.VictoryPoints--;
+                if (_currentIncome.VictoryPoints > 0)
+                    _currentIncome.VictoryPoints--;
                 break;
         }
     }
 
     private async Task UndoOne(StockpileType type)
     {
-        var stock = db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
+        var stock = _db.Stockpile.FindOne(x => x.Type == type && x.Round == _currentRound);
 
         if (stock.Amount < stock.InitialAmount)
         {
             stock.Amount++;
-            db.Stockpile.Update(stock);
-            await db.SaveDatabaseAsync();
+            _db.Stockpile.Update(stock);
+            await _db.SaveDatabaseAsync();
         }
 
         switch (type)
         {
             case StockpileType.Manpower:
-                if (currentCount.Manpower < stock.InitialAmount)
-                    currentCount.Manpower++;
+                if (_currentCount.Manpower < stock.InitialAmount)
+                    _currentCount.Manpower++;
                 break;
             case StockpileType.Ammo:
-                if (currentCount.Ammo < stock.InitialAmount)
-                    currentCount.Ammo++;
+                if (_currentCount.Ammo < stock.InitialAmount)
+                    _currentCount.Ammo++;
                 break;
             case StockpileType.Fuel:
-                if (currentCount.Fuel < stock.InitialAmount)
-                    currentCount.Fuel++;
+                if (_currentCount.Fuel < stock.InitialAmount)
+                    _currentCount.Fuel++;
                 break;
         }
     }
 
     private async Task BuyOne(StockpileType type)
     {
-        var stock = db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
+        var stock = _db.Stockpile.FindOne(x => x.Type == type && x.Round == _currentRound);
 
         if (stock.Amount > 0)
         {
             stock.Amount--;
-            db.Stockpile.Update(stock);
-            await db.SaveDatabaseAsync();
+            _db.Stockpile.Update(stock);
+            await _db.SaveDatabaseAsync();
         }
 
         switch (type)
         {
             case StockpileType.Manpower:
-                if (currentCount.Manpower > 0)
-                    currentCount.Manpower--;
+                if (_currentCount.Manpower > 0)
+                    _currentCount.Manpower--;
                 break;
             case StockpileType.Ammo:
-                if (currentCount.Ammo > 0)
-                    currentCount.Ammo--;
+                if (_currentCount.Ammo > 0)
+                    _currentCount.Ammo--;
                 break;
             case StockpileType.Fuel:
-                if (currentCount.Fuel > 0)
-                    currentCount.Fuel--;
+                if (_currentCount.Fuel > 0)
+                    _currentCount.Fuel--;
                 break;
         }
     }
 
     private async Task Init(GameEdition edition, int targetVpPick = 15)
     {
-        var result = await gameService.InitializeGameAsync(edition, targetVpPick);
+        var result = await _gameService.InitializeGameAsync(edition, targetVpPick);
 
-        currentCount = result.currentCount;
-        currentIncome = result.currentIncome;
-        currentGame = result.currentGame;
+        _currentCount = result.currentCount;
+        _currentIncome = result.currentIncome;
+        _currentGame = result.currentGame;
         _vps = result.vps;
 
         StateHasChanged();//TODO: mit @bind machen...
@@ -347,28 +346,28 @@
 
     private void Load()
     {
-        var result = gameService.LoadGame();
+        var result = _gameService.LoadGame();
 
-        currentRound = result.currentRound;
-        currentCount = result.currentCount;
-        currentIncome = result.currentIncome;
-        currentGame = result.currentGame;
+        _currentRound = result.currentRound;
+        _currentCount = result.currentCount;
+        _currentIncome = result.currentIncome;
+        _currentGame = result.currentGame;
     }
 
     private void NewRound()
     {
-        gameService.NewRound(currentIncome, currentCount, currentRound);
+        _gameService.NewRound(_currentIncome, _currentCount, _currentRound);
     }
 
     private async Task NextRoundAsync(MouseEventArgs e)
     {
-        var changed = gameService.GetChangedIncome(currentRound, currentIncome);
+        var changed = _gameService.GetChangedIncome(_currentRound, _currentIncome);
 
         bool confirmed = false;
 
         if (!changed.Any())
         {
-            confirmed = await dialog.ShowAsync(
+            confirmed = await _dialog.ShowAsync(
        title: "Alles erledigt?",
        message1: "Nächste Runde? Die Front ist unverändert!");
 
@@ -379,7 +378,7 @@
             parameters.Add("Items", changed);
             parameters.Add("Title", "Nächste Runde? Es gab Änderungen an der HKL:");
 
-            confirmed = await dialog.ShowAsync<NextRoundDialog>(
+            confirmed = await _dialog.ShowAsync<NextRoundDialog>(
        title: "Alles erledigt?",
        parameters: parameters
             );
@@ -387,7 +386,7 @@
 
         if (confirmed)
         {
-            await gameService.ProcessNextRoundAsync(currentGame, currentIncome, currentCount, currentRound, modal);
+            await _gameService.ProcessNextRoundAsync(_currentGame, _currentIncome, _currentCount, _currentRound, _modal);
             Load();
         }
     }
@@ -399,47 +398,44 @@
                 YesButtonText = "Reset",
                 YesButtonColor = ButtonColor.Danger
             };
-        var confirmation = await dialog.ShowAsync(
+        var confirmation = await _dialog.ShowAsync(
            title: "Reset App?",
            message1: "Es wird ALLES zurückgesetzt?",
         confirmDialogOptions: opt);
 
         if (confirmation)
         {
-            await db.ClearLocalStorageAsync();
-            await db.LoadDatabaseAsync();
+            await _db.ClearLocalStorageAsync();
+            await _db.LoadDatabaseAsync();
             await Init(GameEdition.FirstEditionProWithErrata);
         }
     }
 
-    private Action<int>
-    newGameCallback;
-
     private async Task NewGameAsync(GameEdition edition)
     {
-        newGameCallback = async vp =>
+        _newGameCallback = async vp =>
         {
-            db.Income.DeleteAll();
-            db.Stockpile.DeleteAll();
-            db.Fuks.DeleteAll();
-            db.Game.DeleteAll();
-            await db.SaveDatabaseAsync();
+            _db.Income.DeleteAll();
+            _db.Stockpile.DeleteAll();
+            _db.Fuks.DeleteAll();
+            _db.Game.DeleteAll();
+            await _db.SaveDatabaseAsync();
             await Init(edition, vp);
             Load();
         };
 
-        gameService.GetInitVps(edition);
-        await modalVpQuestion.ShowAsync();
+        _gameService.GetInitVps(edition);
+        await _modalVpQuestion.ShowAsync();
     }
 
     private async Task GainVp(MouseEventArgs e)
     {
-        var stock = db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound);
+        var stock = _db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == _currentRound);
 
         stock.Amount++;
-        db.Stockpile.Update(stock);
-        currentCount.VictoryPoints++;
-        db.Fuks.Insert(new Fuk() { Date = DateTime.Now, Round = currentRound });
-        await db.SaveDatabaseAsync();
+        _db.Stockpile.Update(stock);
+        _currentCount.VictoryPoints++;
+        _db.Fuks.Insert(new Fuk() { Date = DateTime.Now, Round = _currentRound });
+        await _db.SaveDatabaseAsync();
     }
 }

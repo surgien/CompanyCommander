@@ -12,6 +12,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddBlazoredLocalStorageAsSingleton();
 
 builder.Services.AddSingleton<AppDbContext>();
+builder.Services.AddSingleton<GameService>();
 builder.Services.AddBlazorBootstrap(); // Registriert den ModalService
 
 await builder.Build().RunAsync();
