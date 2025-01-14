@@ -40,12 +40,13 @@ public class GameService {
 
     currentCount.VictoryPoints = 0;
     var currentRound = 1;
-    NewRound(currentIncome, currentCount, currentRound);
     var currentGame = new Game() {
       Edition = GameEdition.FirstEditionProWithErrata,
       Start = DateTime.Now,
       VictoryPoints = targetVpPick
     };
+    await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);
+
     db.Game.Insert(currentGame);
     await db.SaveDatabaseAsync();
 
@@ -73,7 +74,7 @@ public class GameService {
     return (currentIncome, currentCount, currentGame, currentRound);
   }
 
-  public void NewRound(IncomeModel currentIncome, IncomeModel currentCount, int currentRound) {
+  private async Task NewRoundAsync(IncomeModel currentIncome, IncomeModel currentCount, int currentRound, Game currentGame) {
     db.Income.Insert(new Income { Amount = currentIncome.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
     db.Income.Insert(new Income { Amount = currentIncome.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
     db.Income.Insert(new Income { Amount = currentIncome.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
@@ -83,6 +84,27 @@ public class GameService {
     db.Stockpile.Insert(new Stockpile { InitialAmount = currentCount.Ammo, Amount = currentCount.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
     db.Stockpile.Insert(new Stockpile { InitialAmount = currentCount.Fuel, Amount = currentCount.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
     db.Stockpile.Insert(new Stockpile { InitialAmount = currentCount.VictoryPoints, Amount = currentCount.VictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+
+    var backend = new CompanyCommander.Backend.BackendDataContext("https://solarsphereapi-gybwcpf8ade9chbj.germanywestcentral-01.azurewebsites.net/", new HttpClient());
+    //var backend = new CompanyCommander.Backend.BackendDataContext("https://localhost:7027/", new HttpClient());
+
+    await backend.CollectIncomeAsync(new CompanyCommander.Backend.Round() {
+      ClientId = currentGame.Id,
+      Start = currentGame.Start,
+      RoundNr = currentRound,
+      Income = new CompanyCommander.Backend.Income() {
+        Manpower = currentIncome.Manpower,
+        Ammo = currentIncome.Ammo,
+        Fuel = currentIncome.Fuel,
+        VictoryPoints = currentIncome.VictoryPoints
+      },
+      Stockpile = new CompanyCommander.Backend.Income() {
+        Manpower = currentCount.Manpower,
+        Ammo = currentCount.Ammo,
+        Fuel = currentCount.Fuel,
+        VictoryPoints = currentCount.VictoryPoints
+      }
+    });
   }
 
   public List<string> GetChangedIncome(int currentRound, IncomeModel currentIncome) {
@@ -133,7 +155,7 @@ public class GameService {
     if (currentGame != null && currentCount.VictoryPoints >= currentGame.VictoryPoints) {
       await modal.ShowAsync();
     }
-    NewRound(currentIncome, currentCount, currentRound);
+    await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);
     await db.SaveDatabaseAsync();
   }
 

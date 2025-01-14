@@ -15,4 +15,15 @@ builder.Services.AddSingleton<AppDbContext>();
 builder.Services.AddSingleton<GameService>();
 builder.Services.AddBlazorBootstrap(); // Registriert den ModalService
 
-await builder.Build().RunAsync();
+// Add CORS policy to allow all origins
+builder.Services.AddCors(options => {
+  options.AddPolicy("AllowAllOrigins", builder => {
+    builder.AllowAnyOrigin()
+           .AllowAnyMethod()
+           .AllowAnyHeader();
+  });
+});
+
+var app = builder.Build();
+
+await app.RunAsync();

@@ -354,11 +354,6 @@
         _currentGame = result.currentGame;
     }
 
-    private void NewRound()
-    {
-        _gameService.NewRound(_currentIncome, _currentCount, _currentRound);
-    }
-
     private async Task NextRoundAsync(MouseEventArgs e)
     {
         var changed = _gameService.GetChangedIncome(_currentRound, _currentIncome);
@@ -424,7 +419,7 @@
             Load();
         };
 
-        _gameService.GetInitVps(edition);
+        _vps = _gameService.GetInitVps(edition);
         await _modalVpQuestion.ShowAsync();
     }
 
