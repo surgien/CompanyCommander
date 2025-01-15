@@ -4,7 +4,6 @@
 @using CompanyCommander.DB
 @using CompanyCommander.Model
 @inject GameService _gameService
-@inject AppDbContext _db
 @implements IDisposable
 
 <PageTitle>HqBoard</PageTitle>
@@ -63,7 +62,17 @@
             <p role="status">Runde: @_currentRound</p>
         </div>
         <div class="col text-end">
-            <button class="btn btn-primary me-2" @onclick="AppResetAsync">Reset</button>
+            <Dropdown Color="DropdownColor.Primary" Split="true">
+                <DropdownActionButton @onclick="OnSave">Speichern</DropdownActionButton>
+                <DropdownToggleButton />
+                <DropdownMenu>
+                    <DropdownItem To="#" Color="DropdownColor.Danger"
+                                  Type="DropdownItemType.Link" @onclick="AppResetAsync">Reset</DropdownItem>
+                </DropdownMenu>
+            </Dropdown>
+
+
+            @* <button class="btn btn-primary me-2" @onclick="AppResetAsync">Reset</button> *@
         </div>
     </div>
 
@@ -204,7 +213,7 @@
 @code {
     private IncomeModel _currentIncome = new IncomeModel();
     private IncomeModel _currentCount = new IncomeModel();
-    private int _currentRound;
+    private int _currentRound = 1;
     private Game _currentGame;
     private Modal _modal = default!;
     private Modal _modalVpQuestion = default!;
@@ -215,10 +224,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await _db.LoadDatabaseAsync();
-        _editions = ((GameEdition[])Enum.GetValues(typeof(GameEdition))).ToList();
+        var result = await _gameService.LoadDatabaseAsync();
 
-        if (_db.Stockpile.Count() == 0)
+        _editions = result.editions;
+
+        if (result.isRunning)
         {
             //Init...
             await Init(GameEdition.FirstEditionProWithErrata);
@@ -236,100 +246,22 @@
 
     private void IncrementCount(StockpileType type)
     {
-        switch (type)
-        {
-            case StockpileType.Manpower:
-                _currentIncome.Manpower++;
-                break;
-            case StockpileType.Ammo:
-                _currentIncome.Ammo++;
-                break;
-            case StockpileType.Fuel:
-                _currentIncome.Fuel++;
-                break;
-            case StockpileType.VictoryPoints:
-                _currentIncome.VictoryPoints++;
-                break;
-        }
+        _gameService.IncrementCount(type, _currentIncome);
     }
 
     private void DecrementCount(StockpileType type)
     {
-        switch (type)
-        {
-            case StockpileType.Manpower:
-                if (_currentIncome.Manpower > 0)
-                    _currentIncome.Manpower--;
-                break;
-            case StockpileType.Ammo:
-                if (_currentIncome.Ammo > 0)
-                    _currentIncome.Ammo--;
-                break;
-            case StockpileType.Fuel:
-                if (_currentIncome.Fuel > 0)
-                    _currentIncome.Fuel--;
-                break;
-            case StockpileType.VictoryPoints:
-                if (_currentIncome.VictoryPoints > 0)
-                    _currentIncome.VictoryPoints--;
-                break;
-        }
+        _gameService.DecrementCount(type, _currentIncome);
     }
 
-    private async Task UndoOne(StockpileType type)
+    private async void UndoOne(StockpileType type)
     {
-        var stock = _db.Stockpile.FindOne(x => x.Type == type && x.Round == _currentRound);
-
-        if (stock.Amount < stock.InitialAmount)
-        {
-            stock.Amount++;
-            _db.Stockpile.Update(stock);
-            await _db.SaveDatabaseAsync();
-        }
-
-        switch (type)
-        {
-            case StockpileType.Manpower:
-                if (_currentCount.Manpower < stock.InitialAmount)
-                    _currentCount.Manpower++;
-                break;
-            case StockpileType.Ammo:
-                if (_currentCount.Ammo < stock.InitialAmount)
-                    _currentCount.Ammo++;
-                break;
-            case StockpileType.Fuel:
-                if (_currentCount.Fuel < stock.InitialAmount)
-                    _currentCount.Fuel++;
-                break;
-        }
+        await _gameService.UndoOneAsync(type, _currentCount, _currentRound);
     }
 
-    private async Task BuyOne(StockpileType type)
+    private async void BuyOne(StockpileType type)
     {
-        var stock = _db.Stockpile.FindOne(x => x.Type == type && x.Round == _currentRound);
-
-        if (stock.Amount > 0)
-        {
-            stock.Amount--;
-            _db.Stockpile.Update(stock);
-            await _db.SaveDatabaseAsync();
-        }
-
-        switch (type)
-        {
-            case StockpileType.Manpower:
-                if (_currentCount.Manpower > 0)
-                    _currentCount.Manpower--;
-                break;
-            case StockpileType.Ammo:
-                if (_currentCount.Ammo > 0)
-                    _currentCount.Ammo--;
-                break;
-            case StockpileType.Fuel:
-                if (_currentCount.Fuel > 0)
-                    _currentCount.Fuel--;
-                break;
-        }
+        await _gameService.BuyOneAsync(type, _currentCount, _currentRound);
     }
 
     private async Task Init(GameEdition edition, int targetVpPick = 15)
@@ -352,6 +284,7 @@
         _currentCount = result.currentCount;
         _currentIncome = result.currentIncome;
         _currentGame = result.currentGame;
+        StateHasChanged();//TODO: mit @bind machen...
     }
 
     private async Task NextRoundAsync(MouseEventArgs e)
@@ -400,8 +333,8 @@
 
         if (confirmation)
         {
-            await _db.ClearLocalStorageAsync();
-            await _db.LoadDatabaseAsync();
+            await _gameService.ClearDatabaseAsync();
+            _currentRound = 1;
             await Init(GameEdition.FirstEditionProWithErrata);
         }
     }
@@ -410,11 +343,7 @@
     {
         _newGameCallback = async vp =>
         {
-            _db.Income.DeleteAll();
-            _db.Stockpile.DeleteAll();
-            _db.Fuks.DeleteAll();
-            _db.Game.DeleteAll();
-            await _db.SaveDatabaseAsync();
+            await _gameService.DeleteAllAsync();
             await Init(edition, vp);
             Load();
         };
@@ -423,14 +352,14 @@
         await _modalVpQuestion.ShowAsync();
     }
 
-    private async Task GainVp(MouseEventArgs e)
+    private async void GainVp(MouseEventArgs e)
     {
-        var stock = _db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == _currentRound);
+        await _gameService.GainVictoryPointAsync(_currentRound, _currentCount);
+        StateHasChanged();
+    }
 
-        stock.Amount++;
-        _db.Stockpile.Update(stock);
-        _currentCount.VictoryPoints++;
-        _db.Fuks.Insert(new Fuk() { Date = DateTime.Now, Round = _currentRound });
-        await _db.SaveDatabaseAsync();
+    private async Task OnSave(MouseEventArgs e)
+    {
+        await _gameService.SaveBackendAsync(_currentRound, _currentGame);
     }
 }

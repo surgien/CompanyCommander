@@ -10,7 +10,7 @@
     protected override async Task OnInitializedAsync()
     {
         await db.LoadDatabaseAsync();
-        await Task.Delay(1500);
+        await Task.Delay(150);
         _currentGame = db.Game.FindAll().FirstOrDefault();
         _isLoading = false;
     }

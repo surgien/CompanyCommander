@@ -1,4 +1,5 @@
 ﻿@page "/counter"
+@using BlazorBootstrap
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>Counter</PageTitle>
@@ -9,14 +10,49 @@
 
 <button class="btn btn-primary" @onclick="IncrementCountAsync">Click me NOW! NOWWWWWWWW!!!!</button>
 
+<div class="d-flex mb-3">
+    <div class="flex-fill">
+        <RangeInput @onchange="Chacnge1" @oninput="Chacnge" @onmouseup="MouseUp" TValue="int"
+            @bind-Value="temperature1" Min="1" Max="19" TickMarks="list"
+            LabelOrientation="Horizontal" @onpointerup="OnPointerUp" />
+
+        <div class="d-flex justify-content-between">
+            @for (int i = 1; i <= 19; i++)
+            {
+                <span>@i</span>
+            }
+        </div>
+    </div>
+</div>
+<Badge Color="BadgeColor.Primary" Class="ms-2" VisuallyHiddenText="amount1">@temperature1</Badge>
+<span>Fahrenheit</span>
+
+
+
+
+<div class="mb-3">
+    <Button Type="ButtonType.Button" Color="ButtonColor.Primary">
+        Announcement <Badge Color="BadgeColor.Danger"><Icon Name="IconName.MegaphoneFill" /> 2</Badge>
+    </Button>
+    <Badge Color="BadgeColor.Dark" IndicatorType="BadgeIndicatorType.RoundedCircle">💣 Ammo: 2</Badge>
+</div>
+
 @code {
     private int currentCount = 0;
+    int temperature1 = 9;
+
+    List<TickMark> list = new List<TickMark>
+    {
+    };
 
     protected override async Task OnInitializedAsync()
     {
+        for (int i = 1; i <= 19; i++)
+        {
+            list.Add(new TickMark() { Label = "", Value = i.ToString() });
+        }
 
         var counter = await localStorage.GetItemAsync<int>("Counter");
-        // Http.
         currentCount = counter;
     }
 
@@ -24,5 +60,23 @@
     {
         currentCount++;
         await localStorage.SetItemAsync("Counter", currentCount);
+    }
+
+    private void Chacnge()
+    {
+        Console.WriteLine("Change");
+    }
+
+    private void Chacnge1()
+    {
+        Console.WriteLine("Change1");
+    }
+
+    private void MouseUp()
+    {
+    }
+    private void OnPointerUp(PointerEventArgs e)
+    {
+        Console.WriteLine("MouseUp - Value accepted: " + temperature1);
     }
 }

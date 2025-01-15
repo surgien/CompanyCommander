@@ -39,6 +39,7 @@ namespace CompanyCommander.DB {
     public GameEdition Edition { get; set; }
     public DateTime Start { get; set; }
     public int VictoryPoints { get; set; }
+    public int SavedRound { get; set; }
   }
 
   public class Stockpile {
@@ -91,17 +92,23 @@ namespace CompanyCommander.DB {
     }
 
     public async Task LoadDatabaseAsync() {
-      if (Database == null) {
-        var dbContent = await _localStorage.GetItemAsync<string>(nameof(AppDbContext));
+      await _saveSemaphore.WaitAsync();
+      try {
+        if (Database == null) {
+          var dbContent = await _localStorage.GetItemAsync<string>(nameof(AppDbContext));
 
-        MemoryStream = new MemoryStream();
+          MemoryStream = new MemoryStream();
 
-        if (dbContent != null) {
-          var bytes = Convert.FromBase64String(dbContent);
-          MemoryStream = new MemoryStream(bytes);
+          if (dbContent != null) {
+            var bytes = Convert.FromBase64String(dbContent);
+            MemoryStream = new MemoryStream(bytes);
+          }
+
+          Database = new LiteDatabase(MemoryStream);
         }
-
-        Database = new LiteDatabase(MemoryStream);
+      }
+      finally {
+        _saveSemaphore.Release();
       }
     }
 
@@ -110,8 +117,15 @@ namespace CompanyCommander.DB {
     public async Task SaveDatabaseAsync() {
       await _saveSemaphore.WaitAsync();
       try {
+        //Database.chec
         Database.Commit();
+
+        //Hie darf parallel kein Schreibzeugfs merh passieen
         Database.Checkpoint(); //TODO: Exception
+
+
+        Console.WriteLine("Save...");
+
         MemoryStream.Position = 0;
 
         var jsonString = Convert.ToBase64String(MemoryStream.ToArray());

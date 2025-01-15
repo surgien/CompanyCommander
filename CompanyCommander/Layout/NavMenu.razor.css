@@ -72,6 +72,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    
+}
+
+:root {
+    --bs-nav-link-padding-y: 0.5rem; /* Vertikales Padding */
+    --bs-nav-link-padding-x: 2rem; /* Horizontales Padding */
 }
 
 @media (min-width: 641px) {
