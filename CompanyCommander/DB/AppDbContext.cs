@@ -92,7 +92,7 @@ namespace CompanyCommander.DB {
     }
 
     public async Task LoadDatabaseAsync() {
-      await _saveSemaphore.WaitAsync();
+      await EnumExtensions.SaveSemaphore.WaitAsync();
       try {
         if (Database == null) {
           var dbContent = await _localStorage.GetItemAsync<string>(nameof(AppDbContext));
@@ -108,14 +108,12 @@ namespace CompanyCommander.DB {
         }
       }
       finally {
-        _saveSemaphore.Release();
+        EnumExtensions.SaveSemaphore.Release();
       }
     }
 
-    private static readonly SemaphoreSlim _saveSemaphore = new SemaphoreSlim(1, 1);
-
     public async Task SaveDatabaseAsync() {
-      await _saveSemaphore.WaitAsync();
+      await EnumExtensions.SaveSemaphore.WaitAsync();
       try {
         //Database.chec
         Database.Commit();
@@ -132,7 +130,7 @@ namespace CompanyCommander.DB {
         await _localStorage.SetItemAsync(nameof(AppDbContext), jsonString);
       }
       finally {
-        _saveSemaphore.Release();
+        EnumExtensions.SaveSemaphore.Release();
       }
     }
   }

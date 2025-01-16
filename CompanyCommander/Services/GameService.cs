@@ -20,7 +20,7 @@ public class GameService {
 
     if (stock.Amount > 0) {
       stock.Amount = amount;
-      _db.Stockpile.Update(stock);
+      await _db.Stockpile.UpdateAsync(stock);
       await _db.SaveDatabaseAsync();
     }
   }
@@ -46,7 +46,7 @@ public class GameService {
 
     if (stock.Amount > 0) {
       stock.Amount--;
-      _db.Stockpile.Update(stock);
+      await _db.Stockpile.UpdateAsync(stock);
       await _db.SaveDatabaseAsync();
     }
   }
@@ -94,7 +94,7 @@ public class GameService {
 
     if (stock.Amount < stock.InitialAmount) {
       stock.Amount++;
-      _db.Stockpile.Update(stock);
+      await _db.Stockpile.UpdateAsync(stock);
       await _db.SaveDatabaseAsync();
     }
   }
@@ -132,18 +132,18 @@ public class GameService {
     };
     await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);
 
-    _db.Game.DeleteAll();
-    _db.Game.Insert(currentGame);
+    await _db.Game.DeleteAllAsync();
+    await _db.Game.InsertAsync(currentGame);
     await _db.SaveDatabaseAsync();
 
     return (currentIncome, currentCount, currentGame, vps);
   }
 
   public async Task DeleteAllAsync() {
-    _db.Income.DeleteAll();
-    _db.Stockpile.DeleteAll();
-    _db.Fuks.DeleteAll();
-    _db.Game.DeleteAll();
+    await _db.Income.DeleteAllAsync();
+    await _db.Stockpile.DeleteAllAsync();
+    await _db.Fuks.DeleteAllAsync();
+    await _db.Game.DeleteAllAsync();
     await _db.SaveDatabaseAsync();
   }
 
@@ -171,15 +171,15 @@ public class GameService {
   }
 
   private async Task NewRoundAsync(IncomeModel currentIncome, IncomeModel currentCount, int currentRound, Game currentGame) {
-    _db.Income.Insert(new Income { Amount = currentIncome.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-    _db.Income.Insert(new Income { Amount = currentIncome.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-    _db.Income.Insert(new Income { Amount = currentIncome.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-    _db.Income.Insert(new Income { Amount = currentIncome.VictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+    await _db.Income.InsertAsync(new Income { Amount = currentIncome.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
+    await _db.Income.InsertAsync(new Income { Amount = currentIncome.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
+    await _db.Income.InsertAsync(new Income { Amount = currentIncome.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
+    await _db.Income.InsertAsync(new Income { Amount = currentIncome.VictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
 
-    _db.Stockpile.Insert(new Stockpile { InitialAmount = currentCount.Manpower, Amount = currentCount.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-    _db.Stockpile.Insert(new Stockpile { InitialAmount = currentCount.Ammo, Amount = currentCount.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-    _db.Stockpile.Insert(new Stockpile { InitialAmount = currentCount.Fuel, Amount = currentCount.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-    _db.Stockpile.Insert(new Stockpile { InitialAmount = currentCount.VictoryPoints, Amount = currentCount.VictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+    await _db.Stockpile.InsertAsync(new Stockpile { InitialAmount = currentCount.Manpower, Amount = currentCount.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
+    await _db.Stockpile.InsertAsync(new Stockpile { InitialAmount = currentCount.Ammo, Amount = currentCount.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
+    await _db.Stockpile.InsertAsync(new Stockpile { InitialAmount = currentCount.Fuel, Amount = currentCount.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
+    await _db.Stockpile.InsertAsync(new Stockpile { InitialAmount = currentCount.VictoryPoints, Amount = currentCount.VictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
 
     //currentGame.SavedRound = currentRound;
     //_db.Game.Update(currentGame);
@@ -232,7 +232,7 @@ public class GameService {
       await SaveBackendAsync(currentIncome, currentCount, i, currentGame);
       currentGame.SavedRound = currentRound;
     }
-    _db.Game.Update(currentGame);
+    await _db.Game.UpdateAsync(currentGame);
     await _db.SaveDatabaseAsync();
   }
 
@@ -320,8 +320,8 @@ public class GameService {
     stock.Amount++;
     currentCount.VictoryPoints++;
 
-    _db.Stockpile.Update(stock);
-    _db.Fuks.Insert(new Fuk() { Date = DateTime.Now, Round = currentRound });
+    await _db.Stockpile.UpdateAsync(stock);
+    await _db.Fuks.InsertAsync(new Fuk() { Date = DateTime.Now, Round = currentRound });
     await _db.SaveDatabaseAsync();
   }
 
