@@ -181,6 +181,10 @@ else
                                             {
                                                 i++;
                                             }
+                                            if (_currentCountMax[StockpileType.Manpower] > 14)
+                                            {
+                                                i++;
+                                            }
                                         }
                                     </div>
                                 </div>
@@ -213,6 +217,10 @@ else
                                             {
                                                 i++;
                                             }
+                                            if (_currentCountMax[StockpileType.Ammo] > 14)
+                                            {
+                                                i++;
+                                            }
                                         }
                                     </div>
                                 </div>
@@ -239,9 +247,13 @@ else
                                     <div class="d-flex justify-content-between">
                                         @for (int i = 0; i <= _currentCountMax[StockpileType.Fuel]; i++)
                                         {
-                                            if (_currentCountMax[StockpileType.Fuel] > 10 && i != 1 && i != _currentCountMax[StockpileType.Fuel] && i % 2 == 0)
+                                            if (_currentCountMax[StockpileType.Ammo] > 9)
                                             {
-                                                continue;
+                                                i++;
+                                            }
+                                            if (_currentCountMax[StockpileType.Ammo] > 14)
+                                            {
+                                                i++;
                                             }
                                             <span>@i</span>
                                         }
@@ -287,9 +299,9 @@ else
             </div>
         </div>
     </div>
-}
 
-@code {
+
+    @code {
     private bool _isLoading = true;
     private IncomeModel _currentIncome = new IncomeModel();
 
@@ -357,14 +369,26 @@ else
         for (int i = 1; i <= _currentCountMax[StockpileType.Manpower]; i++)
         {
             _currentCountMarks[StockpileType.Manpower].Add(new TickMark() { Label = "", Value = i.ToString() });
+            if (_currentCountMax[StockpileType.Manpower] > 14)
+            {
+                i++;
+            }
         }
         for (int i = 1; i <= _currentCountMax[StockpileType.Ammo]; i++)
         {
             _currentCountMarks[StockpileType.Ammo].Add(new TickMark() { Label = "", Value = i.ToString() });
+            if (_currentCountMax[StockpileType.Ammo] > 14)
+            {
+                i++;
+            }
         }
         for (int i = 1; i <= _currentCountMax[StockpileType.Fuel]; i++)
         {
             _currentCountMarks[StockpileType.Fuel].Add(new TickMark() { Label = "", Value = i.ToString() });
+            if (_currentCountMax[StockpileType.Fuel] > 14)
+            {
+                i++;
+            }
         }
         StateHasChanged();//TODO: mit @bind machen...
     }
@@ -534,5 +558,5 @@ else
     }
 }
 
-    }
+}
 
