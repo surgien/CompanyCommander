@@ -14,8 +14,18 @@ public class GameService {
     _db = dbContext;
   }
 
-  public async Task BuyOneAsync(StockpileType type, IncomeModel currentCount, int currentRound) {
+  public async Task UpdateCurrentCountAsync(StockpileType type, IncomeModel currentCount, int currentRound, int amount) {
+
     var stock = _db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
+
+    if (stock.Amount > 0) {
+      stock.Amount = amount;
+      _db.Stockpile.Update(stock);
+      await _db.SaveDatabaseAsync();
+    }
+  }
+
+  public async Task BuyOneAsync(StockpileType type, IncomeModel currentCount, int currentRound) {
 
     switch (type) {
       case StockpileType.Manpower:
@@ -31,11 +41,37 @@ public class GameService {
           currentCount.Fuel--;
         break;
     }
+
+    var stock = _db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
+
     if (stock.Amount > 0) {
       stock.Amount--;
       _db.Stockpile.Update(stock);
       await _db.SaveDatabaseAsync();
     }
+  }
+
+  public IncomeModel GetInitialAmounts(int currentRound) {
+    var result = new IncomeModel();
+
+    foreach (var stock in _db.Stockpile.Find(x => x.Round == currentRound)) {
+      switch (stock.Type) {
+        case StockpileType.Manpower:
+          result.Manpower = stock.InitialAmount;
+          break;
+        case StockpileType.Ammo:
+          result.Ammo = stock.InitialAmount;
+          break;
+        case StockpileType.Fuel:
+          result.Fuel = stock.InitialAmount;
+          break;
+        case StockpileType.VictoryPoints:
+          result.VictoryPoints = stock.InitialAmount;
+          break;
+      }
+    }
+
+    return result;
   }
 
   public async Task UndoOneAsync(StockpileType type, IncomeModel currentCount, int currentRound) {
