@@ -490,11 +490,6 @@ else
         if (confirmation)
         {
             await _gameService.ClearDatabaseAsync();
-            _currentRound = 1;
-
-            UpdateCountMarks();
-            //Init...
-            await Init(GameEdition.FirstEditionProWithErrata);
         }
     }
 

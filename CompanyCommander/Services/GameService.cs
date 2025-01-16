@@ -25,6 +25,19 @@ public class GameService {
     }
   }
 
+
+
+  public async Task GainVictoryPointAsync(int currentRound, IncomeModel currentCount) {
+    var stock = _db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound);
+
+    stock.Amount++;
+    currentCount.VictoryPoints++;
+
+    await _db.Stockpile.UpdateAsync(stock);
+    await _db.Fuks.InsertAsync(new Fuk() { Date = DateTime.Now, Round = currentRound });
+    await _db.SaveDatabaseAsync();
+  }
+
   public async Task BuyOneAsync(StockpileType type, IncomeModel currentCount, int currentRound) {
 
     switch (type) {
@@ -311,17 +324,6 @@ public class GameService {
       await SaveBackendAsync(currentRound, currentGame);
     }
     await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);
-    await _db.SaveDatabaseAsync();
-  }
-
-  public async Task GainVictoryPointAsync(int currentRound, IncomeModel currentCount) {
-    var stock = _db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound);
-
-    stock.Amount++;
-    currentCount.VictoryPoints++;
-
-    await _db.Stockpile.UpdateAsync(stock);
-    await _db.Fuks.InsertAsync(new Fuk() { Date = DateTime.Now, Round = currentRound });
     await _db.SaveDatabaseAsync();
   }
 
