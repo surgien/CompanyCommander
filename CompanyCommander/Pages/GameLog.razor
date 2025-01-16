@@ -46,14 +46,14 @@ else
                     <tr>
                         <td>@round.Round</td>
                         <td>@round.Date.ToString("HH:mm:ss")</td>
-                        <td>@round.Income.Where(i => i.Type == StockpileType.Manpower).Single().Amount</td>
-                        <td>@round.Income.Where(i => i.Type == StockpileType.Ammo).Single().Amount</td>
-                        <td>@round.Income.Where(i => i.Type == StockpileType.Fuel).Single().Amount</td>
-                        <td>@round.Income.Where(i => i.Type == StockpileType.VictoryPoints).Single().Amount</td>
-                        <td>@round.Stockpile.Where(s => s.Type == StockpileType.Manpower).Single().Amount</td>
-                        <td>@round.Stockpile.Where(s => s.Type == StockpileType.Ammo).Single().Amount</td>
-                        <td>@round.Stockpile.Where(s => s.Type == StockpileType.Fuel).Single().Amount</td>
-                        <td>@round.Stockpile.Where(s => s.Type == StockpileType.VictoryPoints).Single().Amount</td>
+                        <td>@GetIncomeAmount(StockpileType.Manpower, round)</td>
+                        <td>@GetIncomeAmount(StockpileType.Ammo, round)</td>
+                        <td>@GetIncomeAmount(StockpileType.Fuel, round)</td>
+                        <td>@GetIncomeAmount(StockpileType.VictoryPoints, round)</td>
+                        <td>@GetStockpileAmount(StockpileType.Manpower, round)</td>
+                        <td>@GetStockpileAmount(StockpileType.Ammo, round)</td>
+                        <td>@GetStockpileAmount(StockpileType.Fuel, round)</td>
+                        <td>@GetStockpileAmount(StockpileType.VictoryPoints, round)</td>
                         <td>@round.FukCount</td>
                     </tr>
                 }
@@ -64,6 +64,31 @@ else
 
 @code {
     private List<RoundInfoModel>? _rounds;
+
+    private int? GetIncomeAmount(StockpileType type, RoundInfoModel round)
+    {
+        try
+        {
+            return round.Income.Where(i => i.Type == type).Single().Amount;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    private int? GetStockpileAmount(StockpileType type, RoundInfoModel round)
+    {
+        try
+        {
+
+            return round.Income.Where(i => i.Type == type).Single().Amount;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

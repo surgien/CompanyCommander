@@ -122,7 +122,6 @@ namespace CompanyCommander.DB {
         Database.Checkpoint(); //TODO: Exception
 
 
-        Console.WriteLine("Save...");
 
         MemoryStream.Position = 0;
 
