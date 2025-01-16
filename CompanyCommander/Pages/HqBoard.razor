@@ -67,10 +67,10 @@
                 <DropdownToggleButton />
                 <DropdownMenu>
                     <DropdownItem To="#" Color="DropdownColor.Danger"
-                                  Type="DropdownItemType.Link" @onclick="AppResetAsync">Reset</DropdownItem>
+                    Type="DropdownItemType.Link" @onclick="AppResetAsync">Reset</DropdownItem>
 
                     <DropdownItem To="#" Color="DropdownColor.Primary"
-                                  Type="DropdownItemType.Link" @onclick="AppRefresh">Refresh</DropdownItem>
+                    Type="DropdownItemType.Link" @onclick="AppRefresh">Refresh</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
         </div>
@@ -155,14 +155,14 @@
                         <div class="d-flex mb-3">
                             <div class="flex-fill">
                                 <RangeInput TValue="int"
-                                            @bind-Value="CurrentCount.Manpower" Min="1"
-                                            Max="_currentCountMax[StockpileType.Manpower]"
-                                            TickMarks="_currentCountMarks[StockpileType.Manpower]"
-                                            LabelOrientation="Horizontal"
-                                            @onpointerup="()=> OnPointerUp(StockpileType.Manpower, CurrentCount.Manpower)" />
+                                @bind-Value="CurrentCount.Manpower" Min="0"
+                                Max="_currentCountMax[StockpileType.Manpower]"
+                                TickMarks="_currentCountMarks[StockpileType.Manpower]"
+                                LabelOrientation="Horizontal"
+                                @onpointerup="()=> OnPointerUp(StockpileType.Manpower, CurrentCount.Manpower)" />
 
                                 <div class="d-flex justify-content-between">
-                                    @for (int i = 1; i <= _currentCountMax[StockpileType.Manpower]; i++)
+                                    @for (int i = 0; i <= _currentCountMax[StockpileType.Manpower]; i++)
                                     {
                                         <span>@i</span>
                                         if (_currentCountMax[StockpileType.Manpower] > 9)
@@ -187,14 +187,14 @@
                         <div class="d-flex mb-3">
                             <div class="flex-fill">
                                 <RangeInput TValue="int"
-                                            @bind-Value="CurrentCount.Ammo" Min="1"
-                                            Max="_currentCountMax[StockpileType.Ammo]"
-                                            TickMarks="_currentCountMarks[StockpileType.Ammo]"
-                                            LabelOrientation="Horizontal"
-                                            @onpointerup="()=> OnPointerUp(StockpileType.Ammo, CurrentCount.Ammo)" />
+                                @bind-Value="CurrentCount.Ammo" Min="0"
+                                Max="_currentCountMax[StockpileType.Ammo]"
+                                TickMarks="_currentCountMarks[StockpileType.Ammo]"
+                                LabelOrientation="Horizontal"
+                                @onpointerup="()=> OnPointerUp(StockpileType.Ammo, CurrentCount.Ammo)" />
 
                                 <div class="d-flex justify-content-between">
-                                    @for (int i = 1; i <= _currentCountMax[StockpileType.Ammo]; i++)
+                                    @for (int i = 0; i <= _currentCountMax[StockpileType.Ammo]; i++)
                                     {
                                         <span>@i</span>
                                         if (_currentCountMax[StockpileType.Ammo] > 9)
@@ -218,15 +218,15 @@
                         <div class="d-flex mb-3">
                             <div class="flex-fill">
                                 <RangeInput TValue="int"
-                                            @ref="_rangeInputC"
-                                            @bind-Value="CurrentCount.Fuel" Min="1"
-                                            Max="_currentCountMax[StockpileType.Fuel]"
-                                            TickMarks="_currentCountMarks[StockpileType.Fuel]"
-                                            LabelOrientation="Horizontal"
-                                            @onpointerup="()=> OnPointerUp(StockpileType.Fuel, CurrentCount.Fuel)" />
+                                @ref="_rangeInputC"
+                                @bind-Value="CurrentCount.Fuel" Min="0"
+                                Max="_currentCountMax[StockpileType.Fuel]"
+                                TickMarks="_currentCountMarks[StockpileType.Fuel]"
+                                LabelOrientation="Horizontal"
+                                @onpointerup="()=> OnPointerUp(StockpileType.Fuel, CurrentCount.Fuel)" />
 
                                 <div class="d-flex justify-content-between">
-                                    @for (int i = 1; i <= _currentCountMax[StockpileType.Fuel]; i++)
+                                    @for (int i = 0; i <= _currentCountMax[StockpileType.Fuel]; i++)
                                     {
                                         if (_currentCountMax[StockpileType.Fuel] > 10 && i != 1 && i != _currentCountMax[StockpileType.Fuel] && i % 2 == 0)
                                         {
@@ -299,8 +299,10 @@
     private ConfirmDialog _dialog = default!;
     private List<GameEdition> _editions;
     private List<int> _vps;
-    private Dictionary<StockpileType, List<TickMark>> _currentCountMarks = new Dictionary<StockpileType, List<TickMark>>();
-    private Dictionary<StockpileType, int> _currentCountMax = new Dictionary<StockpileType, int>();
+    private Dictionary<StockpileType, List<TickMark>> _currentCountMarks = new Dictionary<StockpileType, List<TickMark>>()
+    { { StockpileType.Manpower, new List<TickMark>()},{ StockpileType.Fuel, new List<TickMark>()},{ StockpileType.Ammo, new List<TickMark>()} };
+    private Dictionary<StockpileType, int> _currentCountMax = new Dictionary<StockpileType, int>()
+    { { StockpileType.Manpower,1},{ StockpileType.Ammo,1},{ StockpileType.Fuel,1} };
     private Action<int> _newGameCallback;
     private RangeInput<int> _rangeInputC;
 
@@ -327,9 +329,12 @@
     {
         var initialAmounts = _gameService.GetInitialAmounts(_currentRound);
 
-        _currentCountMax[StockpileType.Manpower] = initialAmounts.Manpower;
-        _currentCountMax[StockpileType.Ammo] = initialAmounts.Ammo;
-        _currentCountMax[StockpileType.Fuel] = initialAmounts.Fuel;
+        if (initialAmounts.Manpower > 0)
+            _currentCountMax[StockpileType.Manpower] = initialAmounts.Manpower;
+        if (initialAmounts.Ammo > 0)
+            _currentCountMax[StockpileType.Ammo] = initialAmounts.Ammo;
+        if (initialAmounts.Fuel > 0)
+            _currentCountMax[StockpileType.Fuel] = initialAmounts.Fuel;
 
         _currentCountMarks[StockpileType.Manpower] = new List<TickMark>();
         _currentCountMarks[StockpileType.Ammo] = new List<TickMark>();
@@ -398,6 +403,8 @@
 
         _currentRound = result.currentRound;
 
+        UpdateCountMarks();
+
         if (CurrentCount == null)
         {
             CurrentCount = result.currentCount;
@@ -443,6 +450,10 @@
 
         if (confirmed)
         {
+            _currentCountMax[StockpileType.Manpower] = _currentCount.Manpower + _currentIncome.Manpower;
+            _currentCountMax[StockpileType.Ammo] = _currentCount.Ammo + _currentIncome.Ammo;
+            _currentCountMax[StockpileType.Fuel] = _currentCount.Fuel + _currentIncome.Fuel;
+
             await _gameService.ProcessNextRoundAsync(_currentGame, _currentIncome, CurrentCount, _currentRound, _modal);
             Load();
             UpdateCountMarks();
@@ -466,9 +477,10 @@
         {
             await _gameService.ClearDatabaseAsync();
             _currentRound = 1;
-            await Init(GameEdition.FirstEditionProWithErrata);
 
-            StateHasChanged();//TODO: mit @bind machen...
+            UpdateCountMarks();
+            //Init...
+            await Init(GameEdition.FirstEditionProWithErrata);
         }
     }
 
@@ -498,15 +510,16 @@
     }
     private void AppRefresh(MouseEventArgs e)
     {
-        CurrentCount.Manpower -= 1;
-        StateHasChanged();
-        CurrentCount.Manpower += 1;
+        // CurrentCount.Manpower -= 1;
+        // StateHasChanged();
+        // CurrentCount.Manpower += 1;
 
-        CurrentCount.Ammo += 1;
-        CurrentCount.Ammo -= 1;
+        // CurrentCount.Ammo += 1;
+        // CurrentCount.Ammo -= 1;
 
-        CurrentCount.Fuel += 1;
-        CurrentCount.Fuel -= 1;
+        // CurrentCount.Fuel += 1;
+        // CurrentCount.Fuel -= 1;
+
 
         StateHasChanged();
     }
