@@ -33,7 +33,9 @@ public class GameService {
     stock.Amount++;
     currentCount.VictoryPoints++;
 
+    await _db.SaveDatabaseAsync();
     await _db.Stockpile.UpdateAsync(stock);
+    await _db.SaveDatabaseAsync();
     await _db.Fuks.InsertAsync(new Fuk() { Date = DateTime.Now, Round = currentRound });
     await _db.SaveDatabaseAsync();
   }
