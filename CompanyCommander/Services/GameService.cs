@@ -115,7 +115,7 @@ public class GameService {
   }
 
   public async Task<(IncomeModel currentIncome, IncomeModel currentCount, Game currentGame, List<int> vps)>
-    InitializeGameAsync(GameEdition edition, string fraction, int targetVpPick = 15) {
+    InitializeGameAsync(GameEdition edition, string fraction, string name, int targetVpPick = 15) {
     var currentCount = new IncomeModel();
     var currentIncome = new IncomeModel();
     List<int> vps;
@@ -144,6 +144,7 @@ public class GameService {
       Edition = GameEdition.FirstEditionProWithErrata,
       Start = DateTime.Now,
       VictoryPoints = targetVpPick,
+      PalyerName = name,
       Fraction = Fraction.Wehr//TODO: umstellen von string auf ENUM
     };
     await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);

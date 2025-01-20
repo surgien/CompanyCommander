@@ -32,6 +32,22 @@ else
     <Modal @ref="_modalVpQuestion" Title="Neues Gefecht?">
         <BodyTemplate>
             <div class="row mb-3">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-header">
+                            Spieler
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Spielername:</label>
+                                <InputText @bind-Value="_selectedPlayerName" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
                 <div class="col-md-6 mb-3 mb-md-0">
                     <div class="card">
                         <div class="card-header">
@@ -61,22 +77,15 @@ else
                     </div>
                 </div>
 
-                @code {
-        private void ValidateFraction(ChangeEventArgs e)
-        {
-                _selectedFraction = e.Value.ToString();
-                StateHasChanged();
-        }
-            }
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        Siegpunkte
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Siegpunkte:</label>
-                            @if (_vps != null)
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            Siegpunkte
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Siegpunkte:</label>
+                                @if (_vps != null)
                                 {
                                     <InputRadioGroup @bind-Value="_selectedVp" class="form-control">
                                         @foreach (var option in _vps)
@@ -93,21 +102,31 @@ else
                     </div>
                 </div>
             </div>
+
+
         </BodyTemplate>
-        <FooterTemplate>
-            <Button Color="ButtonColor.Primary" @onclick="async () =>{
+
+        @code {
+        private void ValidateFraction(ChangeEventArgs e)
+        {
+        _selectedFraction = e.Value.ToString();
+        StateHasChanged();
+        }
+    }
+    <FooterTemplate>
+        <Button Color="ButtonColor.Primary" @onclick="async () =>{
                     _newGameCallback();
                     await _modalVpQuestion.HideAsync();
                     }">
-                Start
-            </Button>
-            <Button Color="ButtonColor.Secondary" @onclick="async () =>{
+            Start
+        </Button>
+        <Button Color="ButtonColor.Secondary" @onclick="async () =>{
                     await _modalVpQuestion.HideAsync();
                     }">
-                Cancel
-            </Button>
-        </FooterTemplate>
-    </Modal>
+            Cancel
+        </Button>
+    </FooterTemplate>
+</Modal>
 
     <div class="container">
         <div class="row mb-3">
@@ -380,6 +399,7 @@ else
     private int _selectedVp;
     private List<string> _fractions = new List<string>() { "Wehr", "OKW", "Britten", "USA", "Russen" };
     private string _selectedFraction = "Wehr";
+    private string _selectedPlayerName = "Spieler 1";
     private Dictionary<StockpileType, List<TickMark>> _currentCountMarks = new Dictionary<StockpileType, List<TickMark>>()
     { { StockpileType.Manpower, new List<TickMark>()},{ StockpileType.Fuel, new List<TickMark>()},{ StockpileType.Ammo, new List<TickMark>()} };
     private Dictionary<StockpileType, int> _currentCountMax = new Dictionary<StockpileType, int>()
@@ -480,7 +500,7 @@ else
 
     private async Task Init(GameEdition edition, int targetVpPick = 15)
     {
-        var result = await _gameService.InitializeGameAsync(edition, _selectedFraction, targetVpPick);
+        var result = await _gameService.InitializeGameAsync(edition, _selectedFraction, _selectedPlayerName, targetVpPick);
 
         CurrentCount = result.currentCount;
         _currentIncome = result.currentIncome;

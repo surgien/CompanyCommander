@@ -49,6 +49,7 @@ namespace CompanyCommander.DB {
     public int VictoryPoints { get; set; }
     public int SavedRound { get; set; }
     public Fraction Fraction { get; set; }
+    public string PalyerName{ get; set; }
   }
 
   public class Stockpile {
