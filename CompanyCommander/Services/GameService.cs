@@ -1,4 +1,5 @@
 using BlazorBootstrap;
+using CompanyCommander.Backend;
 using CompanyCommander.DB;
 using CompanyCommander.Model;
 using Microsoft.AspNetCore.Components.Forms;
@@ -115,7 +116,7 @@ public class GameService {
   }
 
   public async Task<(IncomeModel currentIncome, IncomeModel currentCount, Game currentGame, List<int> vps)>
-    InitializeGameAsync(GameEdition edition, string fraction, string name, int targetVpPick = 15) {
+    InitializeGameAsync(GameEdition edition, Faction faction, string name, int targetVpPick = 15) {
     var currentCount = new IncomeModel();
     var currentIncome = new IncomeModel();
     List<int> vps;
@@ -145,7 +146,7 @@ public class GameService {
       Start = DateTime.Now,
       VictoryPoints = targetVpPick,
       PalyerName = name,
-      Fraction = Fraction.Wehr//TODO: umstellen von string auf ENUM
+      Faction = faction
     };
     await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);
 
@@ -188,10 +189,10 @@ public class GameService {
   }
 
   private async Task NewRoundAsync(IncomeModel currentIncome, IncomeModel currentCount, int currentRound, Game currentGame) {
-    await _db.Income.InsertAsync(new Income { Amount = currentIncome.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
-    await _db.Income.InsertAsync(new Income { Amount = currentIncome.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
-    await _db.Income.InsertAsync(new Income { Amount = currentIncome.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
-    await _db.Income.InsertAsync(new Income { Amount = currentIncome.VictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
+    await _db.Income.InsertAsync(new CompanyCommander.DB.Income { Amount = currentIncome.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
+    await _db.Income.InsertAsync(new CompanyCommander.DB.Income { Amount = currentIncome.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
+    await _db.Income.InsertAsync(new CompanyCommander.DB.Income { Amount = currentIncome.Fuel, Type = StockpileType.Fuel, Round = currentRound, Date = DateTime.Now });
+    await _db.Income.InsertAsync(new CompanyCommander.DB.Income { Amount = currentIncome.VictoryPoints, Type = StockpileType.VictoryPoints, Round = currentRound, Date = DateTime.Now });
 
     await _db.Stockpile.InsertAsync(new Stockpile { InitialAmount = currentCount.Manpower, Amount = currentCount.Manpower, Type = StockpileType.Manpower, Round = currentRound, Date = DateTime.Now });
     await _db.Stockpile.InsertAsync(new Stockpile { InitialAmount = currentCount.Ammo, Amount = currentCount.Ammo, Type = StockpileType.Ammo, Round = currentRound, Date = DateTime.Now });
@@ -258,8 +259,8 @@ public class GameService {
     //var backend = new CompanyCommander.Backend.BackendDataContext("https://localhost:7027/", new HttpClient());
 
     await backend.CollectIncomeAsync(new CompanyCommander.Backend.Round() {
-      PlayerName = "currentGame",
-      Faction = CompanyCommander.Backend.Faction.British,
+      PlayerName = currentGame.PalyerName,
+      Faction = currentGame.Faction,
 
       ClientId = currentGame.Id,
       Start = currentGame.Start,
@@ -339,10 +340,10 @@ public class GameService {
     await _db.LoadDatabaseAsync();
   }
 
-  public async Task<(List<GameEdition> editions, bool isRunning)> LoadDatabaseAsync() {
+  public async Task<(List<GameEdition> editions, bool isRunning, List<Faction> factions)> LoadDatabaseAsync() {
     await _db.LoadDatabaseAsync();
 
-    return (((GameEdition[])Enum.GetValues(typeof(GameEdition))).ToList(), _db.Game.Count() == 0);
+    return (((GameEdition[])Enum.GetValues(typeof(GameEdition))).ToList(), _db.Game.Count() == 0,((Faction[])Enum.GetValues(typeof(Faction))).ToList() );
   }
 
   public void IncrementCount(StockpileType type, IncomeModel currentIncome) {

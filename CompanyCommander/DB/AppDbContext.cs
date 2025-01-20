@@ -3,6 +3,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Blazored.LocalStorage;
+using CompanyCommander.Backend;
 using LiteDB;
 
 namespace CompanyCommander.DB {
@@ -19,14 +20,6 @@ namespace CompanyCommander.DB {
     Ammo,
     Fuel,
     VictoryPoints //er auch ...
-  }
-
-  public enum Fraction {
-    Wehr,
-    OKW,
-    US,
-    Britten,
-    Russen
   }
 
   public enum GameEdition {
@@ -48,7 +41,7 @@ namespace CompanyCommander.DB {
     public DateTime Start { get; set; }
     public int VictoryPoints { get; set; }
     public int SavedRound { get; set; }
-    public Fraction Fraction { get; set; }
+    public Faction Faction { get; set; }
     public string PalyerName{ get; set; }
   }
 

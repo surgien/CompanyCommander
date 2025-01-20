@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="OpenAPIs\swagger.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <OpenApiReference Include="OpenAPIs\swagger1.json" CodeGenerator="NSwagCSharp" ClassName="BackendDataContext" Namespace="CompanyCommander.Backend">
       <SourceUri>https://solarsphereapi-gybwcpf8ade9chbj.germanywestcentral-01.azurewebsites.net/swagger/v1/swagger.json</SourceUri>
     </OpenApiReference>
@@ -33,6 +29,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
   <ItemGroup>

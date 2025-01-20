@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "SolarSphereApi",
-    "version": "1.0"
+    "title": "SolarSphere API",
+    "version": "v1"
   },
   "paths": {
     "/CompanyCommander/Game/GamesCount": {
@@ -50,7 +50,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Round"
+                    "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
                   }
                 }
               },
@@ -58,7 +58,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Round"
+                    "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
                   }
                 }
               },
@@ -66,7 +66,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Round"
+                    "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
                   }
                 }
               }
@@ -84,17 +84,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Round"
+                "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Round"
+                "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Round"
+                "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
               }
             }
           }
@@ -132,7 +132,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/WeatherForecast"
+                    "$ref": "#/components/schemas/SolarSphereApi.WeatherForecast"
                   }
                 }
               },
@@ -140,7 +140,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/WeatherForecast"
+                    "$ref": "#/components/schemas/SolarSphereApi.WeatherForecast"
                   }
                 }
               },
@@ -148,7 +148,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/WeatherForecast"
+                    "$ref": "#/components/schemas/SolarSphereApi.WeatherForecast"
                   }
                 }
               }
@@ -160,18 +160,17 @@
   },
   "components": {
     "schemas": {
-      "Faction": {
+      "SolarSphereApi.Database.Faction": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
+          "UnitedStates",
+          "GermanWehrmacht",
+          "OberkommandoWest",
+          "British",
+          "SovietUnion"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
-      "Income": {
+      "SolarSphereApi.Database.Income": {
         "type": "object",
         "properties": {
           "id": {
@@ -197,7 +196,7 @@
         },
         "additionalProperties": false
       },
-      "Round": {
+      "SolarSphereApi.Database.Round": {
         "type": "object",
         "properties": {
           "id": {
@@ -209,10 +208,10 @@
             "format": "uuid"
           },
           "income": {
-            "$ref": "#/components/schemas/Income"
+            "$ref": "#/components/schemas/SolarSphereApi.Database.Income"
           },
           "stockpile": {
-            "$ref": "#/components/schemas/Income"
+            "$ref": "#/components/schemas/SolarSphereApi.Database.Income"
           },
           "start": {
             "type": "string",
@@ -231,12 +230,12 @@
             "nullable": true
           },
           "faction": {
-            "$ref": "#/components/schemas/Faction"
+            "$ref": "#/components/schemas/SolarSphereApi.Database.Faction"
           }
         },
         "additionalProperties": false
       },
-      "WeatherForecast": {
+      "SolarSphereApi.WeatherForecast": {
         "type": "object",
         "properties": {
           "date": {

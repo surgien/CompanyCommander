@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using BlazorBootstrap
+@using CompanyCommander.Backend
 @using CompanyCommander.Components
 @using CompanyCommander.DB
 @using CompanyCommander.Model
@@ -56,10 +57,10 @@ else
                         <div class="card-body">
                             <div class="form-group">
                                 <label>Fraktion:</label>
-                                @if (_vps != null)
+                                @if (_factions != null)
                                 {
-                                    <InputRadioGroup @bind-Value="_selectedFraction" class="form-control" @onchange="ValidateFraction">
-                                        @foreach (var option in _fractions)
+                                    <InputRadioGroup @bind-Value="_selectedFaction" class="form-control">
+                                        @foreach (var option in _factions)
                                         {
                                             <div class="form-check">
                                                 <InputRadio class="form-check-input" Value="@option" id="@option" />
@@ -67,10 +68,7 @@ else
                                             </div>
                                         }
                                     </InputRadioGroup>
-                                    @if (string.IsNullOrEmpty(_selectedFraction))
-                                    {
-                                        <div class="text-danger">Bitte wählen Sie eine Fraktion aus.</div>
-                                    }
+
                                 }
                             </div>
                         </div>
@@ -106,13 +104,6 @@ else
 
         </BodyTemplate>
 
-        @code {
-        private void ValidateFraction(ChangeEventArgs e)
-        {
-        _selectedFraction = e.Value.ToString();
-        StateHasChanged();
-        }
-    }
     <FooterTemplate>
         <Button Color="ButtonColor.Primary" @onclick="async () =>{
                     _newGameCallback();
@@ -397,8 +388,8 @@ else
     private List<GameEdition> _editions;
     private List<int> _vps;
     private int _selectedVp;
-    private List<string> _fractions = new List<string>() { "Wehr", "OKW", "Britten", "USA", "Russen" };
-    private string _selectedFraction = "Wehr";
+    private List<Faction> _factions;
+    private Faction _selectedFaction = Faction.GermanWehrmacht;
     private string _selectedPlayerName = "Spieler 1";
     private Dictionary<StockpileType, List<TickMark>> _currentCountMarks = new Dictionary<StockpileType, List<TickMark>>()
     { { StockpileType.Manpower, new List<TickMark>()},{ StockpileType.Fuel, new List<TickMark>()},{ StockpileType.Ammo, new List<TickMark>()} };
@@ -411,6 +402,7 @@ else
         var result = await _gameService.LoadDatabaseAsync();
 
         _editions = result.editions;
+        _factions = result.factions;
 
         UpdateCountMarks();
         if (result.isRunning)
@@ -500,7 +492,7 @@ else
 
     private async Task Init(GameEdition edition, int targetVpPick = 15)
     {
-        var result = await _gameService.InitializeGameAsync(edition, _selectedFraction, _selectedPlayerName, targetVpPick);
+        var result = await _gameService.InitializeGameAsync(edition, _selectedFaction, _selectedPlayerName, targetVpPick);
 
         CurrentCount = result.currentCount;
         _currentIncome = result.currentIncome;
