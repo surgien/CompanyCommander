@@ -31,23 +31,76 @@ else
 
     <Modal @ref="_modalVpQuestion" Title="Neues Gefecht?">
         <BodyTemplate>
+            <div class="row mb-3">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="card">
+                        <div class="card-header">
+                            Fraktion
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Fraktion:</label>
+                                @if (_vps != null)
+                                {
+                                    <InputRadioGroup @bind-Value="_selectedFraction" class="form-control" @onchange="ValidateFraction">
+                                        @foreach (var option in _fractions)
+                                        {
+                                            <div class="form-check">
+                                                <InputRadio class="form-check-input" Value="@option" id="@option" />
+                                                <label class="form-check-label" for="@option">@option</label>
+                                            </div>
+                                        }
+                                    </InputRadioGroup>
+                                    @if (string.IsNullOrEmpty(_selectedFraction))
+                                    {
+                                        <div class="text-danger">Bitte wählen Sie eine Fraktion aus.</div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-
-            Mit wievielen VPs spielt ihr?
-            Auswahl Fraktion und Siegpunkte....
-
+                @code {
+        private void ValidateFraction(ChangeEventArgs e)
+        {
+                _selectedFraction = e.Value.ToString();
+                StateHasChanged();
+        }
+            }
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Siegpunkte
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Siegpunkte:</label>
+                            @if (_vps != null)
+                                {
+                                    <InputRadioGroup @bind-Value="_selectedVp" class="form-control">
+                                        @foreach (var option in _vps)
+                                        {
+                                            <div class="form-check">
+                                                <InputRadio class="form-check-input" Value="@option" id="@option" />
+                                                <label class="form-check-label" for="@option">@option</label>
+                                            </div>
+                                        }
+                                    </InputRadioGroup>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </BodyTemplate>
         <FooterTemplate>
-            @if (_vps != null)
-                @foreach (var vp in _vps)
-                {
-                    <Button Color="ButtonColor.Primary" @onclick="async () =>{
-                    _newGameCallback(vp);
+            <Button Color="ButtonColor.Primary" @onclick="async () =>{
+                    _newGameCallback();
                     await _modalVpQuestion.HideAsync();
                     }">
-                        @vp
-                    </Button>
-                }
+                Start
+            </Button>
             <Button Color="ButtonColor.Secondary" @onclick="async () =>{
                     await _modalVpQuestion.HideAsync();
                     }">
@@ -324,11 +377,14 @@ else
     private ConfirmDialog _dialog = default!;
     private List<GameEdition> _editions;
     private List<int> _vps;
+    private int _selectedVp;
+    private List<string> _fractions = new List<string>() { "Wehr", "OKW", "Britten", "USA", "Russen" };
+    private string _selectedFraction = "Wehr";
     private Dictionary<StockpileType, List<TickMark>> _currentCountMarks = new Dictionary<StockpileType, List<TickMark>>()
     { { StockpileType.Manpower, new List<TickMark>()},{ StockpileType.Fuel, new List<TickMark>()},{ StockpileType.Ammo, new List<TickMark>()} };
     private Dictionary<StockpileType, int> _currentCountMax = new Dictionary<StockpileType, int>()
     { { StockpileType.Manpower,1},{ StockpileType.Ammo,1},{ StockpileType.Fuel,1} };
-    private Action<int> _newGameCallback;
+    private Action _newGameCallback;
 
     protected override async Task OnInitializedAsync()
     {
@@ -424,12 +480,13 @@ else
 
     private async Task Init(GameEdition edition, int targetVpPick = 15)
     {
-        var result = await _gameService.InitializeGameAsync(edition, targetVpPick);
+        var result = await _gameService.InitializeGameAsync(edition, _selectedFraction, targetVpPick);
 
         CurrentCount = result.currentCount;
         _currentIncome = result.currentIncome;
         _currentGame = result.currentGame;
         _vps = result.vps;
+        _selectedVp = _vps.First();
 
         UpdateCountMarks();
         StateHasChanged();//TODO: mit @bind machen...
@@ -519,14 +576,16 @@ else
 
     private async Task NewGameAsync(GameEdition edition)
     {
-        _newGameCallback = async vp =>
+        _newGameCallback = async () =>
         {
             await _gameService.DeleteAllAsync();
-            await Init(edition, vp);
+            await Init(edition, _selectedVp);
             Load();
         };
 
         _vps = _gameService.GetInitVps(edition);
+        _selectedVp = _vps.First();
+
         await _modalVpQuestion.ShowAsync();
 
     }

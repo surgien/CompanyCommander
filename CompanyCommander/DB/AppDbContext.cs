@@ -21,6 +21,14 @@ namespace CompanyCommander.DB {
     VictoryPoints //er auch ...
   }
 
+  public enum Fraction {
+    Wehr,
+    OKW,
+    US,
+    Britten,
+    Russen
+  }
+
   public enum GameEdition {
     [Description("1. Edition - Normal")]
     FirstEditionNormal,
@@ -40,6 +48,7 @@ namespace CompanyCommander.DB {
     public DateTime Start { get; set; }
     public int VictoryPoints { get; set; }
     public int SavedRound { get; set; }
+    public Fraction Fraction { get; set; }
   }
 
   public class Stockpile {
