@@ -5,6 +5,38 @@
     "version": "1.0"
   },
   "paths": {
+    "/CompanyCommander/Game/GamesCount": {
+      "get": {
+        "tags": [
+          "Game"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/CompanyCommander/Game/Rounds": {
       "get": {
         "tags": [
@@ -128,6 +160,17 @@
   },
   "components": {
     "schemas": {
+      "Faction": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
       "Income": {
         "type": "object",
         "properties": {
@@ -182,6 +225,13 @@
           "roundNr": {
             "type": "integer",
             "format": "int32"
+          },
+          "playerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "faction": {
+            "$ref": "#/components/schemas/Faction"
           }
         },
         "additionalProperties": false

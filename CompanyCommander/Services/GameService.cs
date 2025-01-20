@@ -256,6 +256,9 @@ public class GameService {
     //var backend = new CompanyCommander.Backend.BackendDataContext("https://localhost:7027/", new HttpClient());
 
     await backend.CollectIncomeAsync(new CompanyCommander.Backend.Round() {
+      PlayerName = "currentGame",
+      Faction = CompanyCommander.Backend.Faction.British,
+
       ClientId = currentGame.Id,
       Start = currentGame.Start,
       RoundNr = currentRound,
