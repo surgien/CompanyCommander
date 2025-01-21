@@ -254,6 +254,12 @@ public class GameService {
     await _db.SaveDatabaseAsync();
   }
 
+  public async Task<ICollection<Round>> FindRoundsAsync(string term) {
+    var backend = new CompanyCommander.Backend.BackendDataContext("https://solarsphereapi-gybwcpf8ade9chbj.germanywestcentral-01.azurewebsites.net/", new HttpClient());
+
+    return await backend.FindRoundsAsync(term);
+  }
+
   private async Task SaveBackendAsync(IncomeModel currentIncome, IncomeModel currentCount, int currentRound, Game currentGame) {
     var backend = new CompanyCommander.Backend.BackendDataContext("https://solarsphereapi-gybwcpf8ade9chbj.germanywestcentral-01.azurewebsites.net/", new HttpClient());
     //var backend = new CompanyCommander.Backend.BackendDataContext("https://localhost:7027/", new HttpClient());
@@ -343,7 +349,7 @@ public class GameService {
   public async Task<(List<GameEdition> editions, bool isRunning, List<Faction> factions)> LoadDatabaseAsync() {
     await _db.LoadDatabaseAsync();
 
-    return (((GameEdition[])Enum.GetValues(typeof(GameEdition))).ToList(), _db.Game.Count() == 0,((Faction[])Enum.GetValues(typeof(Faction))).ToList() );
+    return (((GameEdition[])Enum.GetValues(typeof(GameEdition))).ToList(), _db.Game.Count() == 0, ((Faction[])Enum.GetValues(typeof(Faction))).ToList());
   }
 
   public void IncrementCount(StockpileType type, IncomeModel currentIncome) {

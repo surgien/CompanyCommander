@@ -1,7 +1,9 @@
 ﻿@page "/chart"
 @using BlazorBootstrap
+@using CompanyCommander.Backend
 @using CompanyCommander.DB
 @using CompanyCommander.Model
+@inject GameService _gameService
 @inject AppDbContext db
 @* <div class="container-fluid overflow-x-auto"> *@
 @* <div style="width: 100%; overflow-x: auto;">
@@ -15,22 +17,22 @@
 
         <div class="mb-3 w-100">
             <AutoComplete @bind-Value="customerName"
-                          TItem="Customer"
-                          DataProvider="CustomersDataProvider"
-                          PropertyName="CustomerName"
-                          Placeholder="Spiel suchen..."
-                          OnChanged="(Customer customer) => OnAutoCompleteChanged(customer)" />
+            TItem="Round"
+            DataProvider="CustomersDataProvider"
+                          PropertyName="PlayerName"
+            Placeholder="Spiel suchen..."
+            OnChanged="(Round customer) => OnAutoCompleteChanged(customer)" />
         </div>
         <div class="mb-3">
             <Button Type="ButtonType.Button" Color="ButtonColor.Primary"
-                    Active="false"
-                    Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowEinkommenAsync()">
+            Active="false"
+            Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowEinkommenAsync()">
                 Einkommen
             </Button>
 
             <Button Type="ButtonType.Button" Color="ButtonColor.Primary"
-                    Active="false"
-                    Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowLagerAsync()">
+            Active="false"
+            Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowLagerAsync()">
                 Lager
             </Button>
         </div>
@@ -51,48 +53,23 @@
     private string? customerName;
     public IEnumerable<Customer>? customers;
 
-    private async Task<AutoCompleteDataProviderResult<Customer>> CustomersDataProvider(AutoCompleteDataProviderRequest<Customer> request)
+    private async Task<AutoCompleteDataProviderResult<Round>> CustomersDataProvider(AutoCompleteDataProviderRequest<Round> request)
     {
-        if (customers is null) // pull customers only one time for client-side autocomplete
-            customers = GetCustomers(); // call a service or an API to pull the customers
 
-        return await Task.FromResult(request.ApplyTo(customers.OrderBy(customer => customer.CustomerName)));
+
+        var rounds = await _gameService.FindRoundsAsync(request.Filter.Value);
+
+        return new AutoCompleteDataProviderResult<Round>() { Data = rounds , TotalCount=rounds.Count};
+        // var customers = await _customerService.GetCustomersAsync(request.Filter, request.CancellationToken); // API call
+        // return await Task.FromResult(new AutoCompleteDataProviderResult<Customer2> { Data = customers, TotalCount = customers.Count() });
+
     }
 
-    private IEnumerable<Customer> GetCustomers()
-    {
-        return new List<Customer> {
-            new(1, "Pich S"),
-            new(2, "sfh Sobi"),
-            new(3, "Jojo chan"),
-            new(4, "Jee ja"),
-            new(5, "Rose Canon"),
-            new(6, "Manju A"),
-            new(7, "Bandita PA"),
-            new(8, "Sagar Adil"),
-            new(9, "Isha Wang"),
-            new(10, "Daina JJ"),
-            new(11, "Komala Mug"),
-            new(12, "Dikshita BD"),
-            new(13, "Neha Gosar"),
-            new(14, "Preeti S"),
-            new(15, "Sagar Seth"),
-            new(16, "Vinayak MM"),
-            new(17, "Vijaya Lakhsmi"),
-            new(18, "Jahan K"),
-            new(19, "Joy B"),
-            new(20, "Zaraiah C"),
-            new(21, "Laura L"),
-            new(22, "Punith ES")
-        };
-    }
-
-    private void OnAutoCompleteChanged(Customer customer)
+    private void OnAutoCompleteChanged(Round round)
     {
         // TODO: handle your own logic
 
         // NOTE: do null check
-        Console.WriteLine($"'{customer?.CustomerName}' selected.");
     }
 
     public async Task ShowEinkommenAsync()

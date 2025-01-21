@@ -75,6 +75,53 @@
         }
       }
     },
+    "/CompanyCommander/Game/FindRounds": {
+      "get": {
+        "tags": [
+          "Game"
+        ],
+        "parameters": [
+          {
+            "name": "term",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/CompanyCommander/Game/CollectIncome": {
       "post": {
         "tags": [
