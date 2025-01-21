@@ -419,9 +419,12 @@ else
         _isLoading = false;
     }
 
-    private void UpdateCountMarks()
+    private void UpdateCountMarks(IncomeModel initialAmounts = null)
     {
-        var initialAmounts = _gameService.GetInitialAmounts(_currentRound);
+        if (initialAmounts == null)
+        {
+            initialAmounts = _gameService.GetInitialAmounts(_currentRound);
+        }
 
         if (initialAmounts.Manpower > 0)
             _currentCountMax[StockpileType.Manpower] = initialAmounts.Manpower;
@@ -494,13 +497,14 @@ else
     {
         var result = await _gameService.InitializeGameAsync(edition, _selectedFaction, _selectedPlayerName, targetVpPick);
 
-        CurrentCount = result.currentCount;
         _currentIncome = result.currentIncome;
         _currentGame = result.currentGame;
         _vps = result.vps;
         _selectedVp = _vps.First();
 
-        UpdateCountMarks();
+        UpdateCountMarks(result.currentCount);
+        CurrentCount = result.currentCount;
+
         StateHasChanged();//TODO: mit @bind machen...
     }
 
