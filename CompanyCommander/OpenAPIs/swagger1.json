@@ -265,6 +265,14 @@
         ],
         "type": "string"
       },
+      "SolarSphereApi.Database.GameState": {
+        "enum": [
+          "Open",
+          "Win",
+          "Loss"
+        ],
+        "type": "string"
+      },
       "SolarSphereApi.Database.Income": {
         "type": "object",
         "properties": {
@@ -326,6 +334,9 @@
           },
           "faction": {
             "$ref": "#/components/schemas/SolarSphereApi.Database.Faction"
+          },
+          "currentState": {
+            "$ref": "#/components/schemas/SolarSphereApi.Database.GameState"
           }
         },
         "additionalProperties": false

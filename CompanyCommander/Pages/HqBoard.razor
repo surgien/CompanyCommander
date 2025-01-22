@@ -19,7 +19,8 @@
 }
 else
 {
-    <ConfirmDialog @ref="_dialog" />
+    <ConfirmDialog @ref="_confirmDialog" />
+    <ConfirmDialog @ref="_confirmVpDialog" />
     @*  In Modal: <BodyTemplate>...</BodyTemplate> *@
     <Modal @ref="_modal" Title="Sieg!">
         <BodyTemplate>
@@ -104,20 +105,20 @@ else
 
         </BodyTemplate>
 
-    <FooterTemplate>
-        <Button Color="ButtonColor.Primary" @onclick="async () =>{
+        <FooterTemplate>
+            <Button Color="ButtonColor.Primary" @onclick="async () =>{
                     _newGameCallback();
                     await _modalVpQuestion.HideAsync();
                     }">
-            Start
-        </Button>
-        <Button Color="ButtonColor.Secondary" @onclick="async () =>{
+                Start
+            </Button>
+            <Button Color="ButtonColor.Secondary" @onclick="async () =>{
                     await _modalVpQuestion.HideAsync();
                     }">
-            Cancel
-        </Button>
-    </FooterTemplate>
-</Modal>
+                Cancel
+            </Button>
+        </FooterTemplate>
+    </Modal>
 
     <div class="container">
         <div class="row mb-3">
@@ -384,7 +385,8 @@ else
     private Game _currentGame;
     private Modal _modal = default!;
     private Modal _modalVpQuestion = default!;
-    private ConfirmDialog _dialog = default!;
+    private ConfirmDialog _confirmVpDialog = default!;
+    private ConfirmDialog _confirmDialog = default!;
     private List<GameEdition> _editions;
     private List<int> _vps;
     private int _selectedVp;
@@ -542,7 +544,7 @@ else
 
         if (!changed.Any())
         {
-            confirmed = await _dialog.ShowAsync(
+            confirmed = await _confirmVpDialog.ShowAsync(
        title: "Alles erledigt?",
        message1: "Nächste Runde? Die Front ist unverändert!");
 
@@ -553,7 +555,7 @@ else
             parameters.Add("Items", changed);
             parameters.Add("Title", "Nächste Runde? Es gab Änderungen an der HKL:");
 
-            confirmed = await _dialog.ShowAsync<NextRoundDialog>(
+            confirmed = await _confirmVpDialog.ShowAsync<NextRoundDialog>(
        title: "Alles erledigt?",
        parameters: parameters
             );
@@ -579,7 +581,7 @@ else
                 YesButtonText = "Reset",
                 YesButtonColor = ButtonColor.Danger
             };
-        var confirmation = await _dialog.ShowAsync(
+        var confirmation = await _confirmVpDialog.ShowAsync(
            title: "Reset App?",
            message1: "Es wird ALLES zurückgesetzt?",
         confirmDialogOptions: opt);
@@ -614,8 +616,31 @@ else
 
     private async Task OnSave(MouseEventArgs e)
     {
-        await _gameService.SaveBackendAsync(_currentRound, _currentGame);
+        var options = new ConfirmDialogOptions
+            {
+                YesButtonText = "Ja",
+                YesButtonColor = ButtonColor.Danger,
+                NoButtonText = "Nein",
+                NoButtonColor = ButtonColor.Info
+            };
+
+        var confirmation = await _confirmDialog.ShowAsync(
+            title: "Spielausgang",
+            message1: "Ist das Spiel verloren?",
+            confirmDialogOptions: options);
+
+        if (confirmation)
+        {
+            // do whatever
+            await _gameService.SaveBackendAsync(_currentRound, _currentGame, GameState.Loss);
+        }
+        else
+        {
+            // do whatever
+            await _gameService.SaveBackendAsync(_currentRound, _currentGame, GameState.Open);
+        }
     }
+
     private void AppRefresh(MouseEventArgs e)
     {
         // CurrentCount.Manpower -= 1;

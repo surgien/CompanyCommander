@@ -205,7 +205,7 @@ public class GameService {
     //await SaveBackendAsync(currentIncome, currentCount, currentRound, currentGame);
   }
 
-  public async Task SaveBackendAsync(int currentRound, Game currentGame) {
+  public async Task SaveBackendAsync(int currentRound, Game currentGame, GameState state) {
 
     for (int i = currentGame.SavedRound; i < currentRound; i++) {
       var inc = _db.Income.Find(x => x.Round == i);
@@ -247,7 +247,13 @@ public class GameService {
         }
       }
 
-      await SaveBackendAsync(currentIncome, currentCount, i, currentGame);
+      if (i == currentRound - 1) {
+        await SaveBackendAsync(currentIncome, currentCount, i, currentGame, state);
+      }
+      else {
+        await SaveBackendAsync(currentIncome, currentCount, i, currentGame, GameState.Open);
+      }
+
       currentGame.SavedRound = currentRound;
     }
     await _db.Game.UpdateAsync(currentGame);
@@ -259,12 +265,13 @@ public class GameService {
     return await _backend.FindRoundsAsync(term);
   }
 
-  private async Task SaveBackendAsync(IncomeModel currentIncome, IncomeModel currentCount, int currentRound, Game currentGame) {
+  private async Task SaveBackendAsync(IncomeModel currentIncome, IncomeModel currentCount, int currentRound, Game currentGame, GameState state) {
     //var backend = new CompanyCommander.Backend.BackendDataContext("https://localhost:7027/", new HttpClient());
 
     await _backend.CollectIncomeAsync(new CompanyCommander.Backend.Round() {
       PlayerName = currentGame.PalyerName,
       Faction = currentGame.Faction,
+      CurrentState = state,
 
       ClientId = currentGame.Id,
       Start = currentGame.Start,
@@ -339,7 +346,7 @@ public class GameService {
 
     if (currentGame != null && currentCount.VictoryPoints >= currentGame.VictoryPoints) {
       await modal.ShowAsync();
-      await SaveBackendAsync(currentRound, currentGame);
+      await SaveBackendAsync(currentRound, currentGame, GameState.Win);
     }
     await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);
     await _db.SaveDatabaseAsync();
