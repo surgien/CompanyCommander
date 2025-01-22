@@ -3,6 +3,7 @@
 @using CompanyCommander.Backend
 @using CompanyCommander.DB
 @using CompanyCommander.Model
+@using System.Drawing
 @inject GameService _gameService
 @inject AppDbContext db
 @* <div class="container-fluid overflow-x-auto"> *@
@@ -196,22 +197,26 @@
             };
     }
 
-
+    private Dictionary<StockpileType, Color> _colorMapping = new Dictionary<StockpileType, Color>()
+    {
+      { StockpileType.Fuel, ColorTranslator.FromHtml("#3B8640")},
+      { StockpileType.Manpower, ColorTranslator.FromHtml("#CED442") },
+      { StockpileType.Ammo,  ColorTranslator.FromHtml("#CE3E26")},
+      { StockpileType.VictoryPoints, ColorTranslator.FromHtml("#1B2E5C")}
+    };
+    
     private List<IChartDataset> GetDataSets()
     {
         var datasets = new List<IChartDataset>();
         var stocks = _currentSockpile.GroupBy(s => s.Type).ToList();
-        var i = 0;
         foreach (var group in stocks)
         {
-            var c = ColorUtility.CategoricalTwelveColors[i++].ToColor();
-
             var l = new LineChartDataset
                 {
                     Label = group.Key.ToString(),
                     Data = new List<double?>(),//Die Werte von der Art
-                    BackgroundColor = c.ToRgbaString(),
-                    BorderColor = c.ToRgbString(),
+                    BackgroundColor = _colorMapping[group.Key].ToRgbaString(),
+                    BorderColor = _colorMapping[group.Key].ToRgbString(),
                     PointRadius = new List<double> { 5 },
                     PointHoverRadius = new List<double> { 8 },
                 };
