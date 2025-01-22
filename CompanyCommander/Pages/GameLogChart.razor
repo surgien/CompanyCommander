@@ -17,29 +17,28 @@
 
         <div class="mb-3 w-100">
             <AutoComplete @bind-Value="customerName"
-            TItem="Round"
-            DataProvider="CustomersDataProvider"
-                          PropertyName="PlayerName"
-            Placeholder="Spiel suchen..."
-            OnChanged="(Round customer) => OnAutoCompleteChanged(customer)" />
+                          TItem="GameInfo"
+                          DataProvider="CustomersDataProvider"
+                          PropertyName="Description"
+                          Placeholder="Spiel suchen..."
+                          OnChanged="OnAutoCompleteChanged" />
         </div>
         <div class="mb-3">
             <Button Type="ButtonType.Button" Color="ButtonColor.Primary"
-            Active="false"
-            Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowEinkommenAsync()">
+                    Active="false"
+                    Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowEinkommenAsync()">
                 Einkommen
             </Button>
 
             <Button Type="ButtonType.Button" Color="ButtonColor.Primary"
-            Active="false"
-            Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowLagerAsync()">
+                    Active="false"
+                    Size="ButtonSize.Small" Class="my-1 mr-1" @onclick="async () => await ShowLagerAsync()">
                 Lager
             </Button>
         </div>
     </div>
 </div>
-
-<div style="width: 100%; height: 100%; overflow-x: auto;">
+<div style="overflow-x: auto;">
     <LineChart @ref="lineChart" />
 </div>
 
@@ -49,39 +48,55 @@
     private LineChartOptions lineChartOptions = default!;
     private ChartData chartData = default!;
 
-    private int datasetsCount;
+    private List<Stockpile> _currentSockpile;
+    private List<DB.Income> _currentIncome;
     private string? customerName;
     public IEnumerable<Customer>? customers;
 
-    private async Task<AutoCompleteDataProviderResult<Round>> CustomersDataProvider(AutoCompleteDataProviderRequest<Round> request)
+    private async Task<AutoCompleteDataProviderResult<GameInfo>> CustomersDataProvider(AutoCompleteDataProviderRequest<GameInfo> request)
     {
-
-
         var rounds = await _gameService.FindRoundsAsync(request.Filter.Value);
 
-        return new AutoCompleteDataProviderResult<Round>() { Data = rounds , TotalCount=rounds.Count};
+        return new AutoCompleteDataProviderResult<GameInfo>() { Data = rounds, TotalCount = rounds.Count };
         // var customers = await _customerService.GetCustomersAsync(request.Filter, request.CancellationToken); // API call
         // return await Task.FromResult(new AutoCompleteDataProviderResult<Customer2> { Data = customers, TotalCount = customers.Count() });
-
     }
 
-    private void OnAutoCompleteChanged(Round round)
+    private async void OnAutoCompleteChanged(GameInfo roundInfo)
     {
-        // TODO: handle your own logic
+        if (roundInfo != null)
+        {
+            var rounds = await _gameService.GetRoundsAsync(roundInfo.Id);
+            _currentSockpile = new List<Stockpile>();
+            _currentIncome = new List<DB.Income>();
 
-        // NOTE: do null check
+            foreach (var round in rounds.Where(r => r.RoundNr > 1))
+            {
+                _currentSockpile.Add(new Stockpile() { Type = StockpileType.Fuel, Amount = round.Stockpile.Fuel, Round = round.RoundNr });
+                _currentSockpile.Add(new Stockpile() { Type = StockpileType.Manpower, Amount = round.Stockpile.Manpower, Round = round.RoundNr });
+                _currentSockpile.Add(new Stockpile() { Type = StockpileType.Ammo, Amount = round.Stockpile.Ammo, Round = round.RoundNr });
+                _currentSockpile.Add(new Stockpile() { Type = StockpileType.VictoryPoints, Amount = round.Stockpile.VictoryPoints, Round = round.RoundNr });
+
+                _currentIncome.Add(new DB.Income() { Type = StockpileType.Fuel, Amount = round.Income.Fuel, Round = round.RoundNr });
+                _currentIncome.Add(new DB.Income() { Type = StockpileType.Manpower, Amount = round.Income.Manpower, Round = round.RoundNr });
+                _currentIncome.Add(new DB.Income() { Type = StockpileType.Ammo, Amount = round.Income.Ammo, Round = round.RoundNr });
+                _currentIncome.Add(new DB.Income() { Type = StockpileType.VictoryPoints, Amount = round.Income.VictoryPoints, Round = round.RoundNr });
+            }
+
+            chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
+            await LoadLagerAsync();
+            await lineChart.UpdateAsync(chartData, lineChartOptions);
+        }
     }
 
     public async Task ShowEinkommenAsync()
     {
-        datasetsCount = 0;
         chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
         await LoadEinkommenAsync();
         await lineChart.UpdateAsync(chartData, lineChartOptions);
     }
     public async Task ShowLagerAsync()
     {
-        datasetsCount = 0;
         chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
         await LoadLagerAsync();
         await lineChart.UpdateAsync(chartData, lineChartOptions);
@@ -106,28 +121,26 @@
 
     #region Data Preparation
 
-
-    protected override async Task OnInitializedAsync()
-    {
-        // var inc = db.Income.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(s => s.Key).ToList();
-
-    }
-
     protected async override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
-        await db.LoadDatabaseAsync();
+        if (firstRender)
+        {
+            await db.LoadDatabaseAsync();
+            _currentSockpile = db.Stockpile.Find(s => s.Round != 1).ToList();
+            _currentIncome = db.Income.Find(s => s.Round != 1).ToList();
 
-        _stocks = db.Stockpile.Find(s => s.Round != 1).GroupBy(s => s.Type).ToList();
+            chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
+            await LoadLagerAsync();
+            await lineChart.InitializeAsync(chartData, lineChartOptions);
+        }
 
-        chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
-        await LoadLagerAsync();
-        await lineChart.InitializeAsync(chartData, lineChartOptions);
+
     }
 
     public async Task LoadLagerAsync()
     {
-        foreach (var round in db.Stockpile.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(si => si.Key))
+        foreach (var round in _currentSockpile.GroupBy(s => s.Round).OrderBy(si => si.Key))
         {
 
             if (round.Key > 1)
@@ -136,11 +149,6 @@
                 foreach (var art in round.GroupBy(r => r.Type))
                 {
                     {
-                        if (art.Count() > 1)
-                        {
-                            var x = 2;
-                        }
-
                         data.Add(new LineChartDatasetData(art.Key.ToString(), art.Single().Amount));
                     }
                 }
@@ -159,7 +167,7 @@
 
     public async Task LoadEinkommenAsync()
     {
-        foreach (var round in db.Income.Find(s => s.Round != 1).GroupBy(s => s.Round).OrderBy(si => si.Key))
+        foreach (var round in _currentIncome.GroupBy(s => s.Round).OrderBy(si => si.Key))
         {
 
             if (round.Key > 1)
@@ -188,18 +196,15 @@
             };
     }
 
-    private List<IGrouping<StockpileType, Stockpile>> _stocks;
 
     private List<IChartDataset> GetDataSets()
     {
         var datasets = new List<IChartDataset>();
-
-
-        foreach (var group in _stocks)
+        var stocks = _currentSockpile.GroupBy(s => s.Type).ToList();
+        var i = 0;
+        foreach (var group in stocks)
         {
-            var c = ColorUtility.CategoricalTwelveColors[datasetsCount].ToColor();
-
-            datasetsCount += 1;
+            var c = ColorUtility.CategoricalTwelveColors[i++].ToColor();
 
             var l = new LineChartDataset
                 {

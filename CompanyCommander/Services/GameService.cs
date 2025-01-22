@@ -208,8 +208,8 @@ public class GameService {
   public async Task SaveBackendAsync(int currentRound, Game currentGame) {
 
     for (int i = currentGame.SavedRound; i < currentRound; i++) {
-      var inc = _db.Income.Find(x => x.Round == currentRound);
-      var stock = _db.Stockpile.Find(x => x.Round == currentRound);
+      var inc = _db.Income.Find(x => x.Round == i);
+      var stock = _db.Stockpile.Find(x => x.Round == i);
       var currentIncome = new IncomeModel();
       var currentCount = new IncomeModel();
 
@@ -254,17 +254,15 @@ public class GameService {
     await _db.SaveDatabaseAsync();
   }
 
-  public async Task<ICollection<Round>> FindRoundsAsync(string term) {
-    var backend = new CompanyCommander.Backend.BackendDataContext("https://solarsphereapi-gybwcpf8ade9chbj.germanywestcentral-01.azurewebsites.net/", new HttpClient());
+  public async Task<ICollection<GameInfo>> FindRoundsAsync(string term) {
 
-    return await backend.FindRoundsAsync(term);
+    return await _backend.FindRoundsAsync(term);
   }
 
   private async Task SaveBackendAsync(IncomeModel currentIncome, IncomeModel currentCount, int currentRound, Game currentGame) {
-    var backend = new CompanyCommander.Backend.BackendDataContext("https://solarsphereapi-gybwcpf8ade9chbj.germanywestcentral-01.azurewebsites.net/", new HttpClient());
     //var backend = new CompanyCommander.Backend.BackendDataContext("https://localhost:7027/", new HttpClient());
 
-    await backend.CollectIncomeAsync(new CompanyCommander.Backend.Round() {
+    await _backend.CollectIncomeAsync(new CompanyCommander.Backend.Round() {
       PlayerName = currentGame.PalyerName,
       Faction = currentGame.Faction,
 
@@ -284,6 +282,12 @@ public class GameService {
         VictoryPoints = currentCount.VictoryPoints
       }
     });
+  }
+  private BackendDataContext _backend = new BackendDataContext("https://solarsphereapi-gybwcpf8ade9chbj.germanywestcentral-01.azurewebsites.net/", new HttpClient());
+
+
+  public async Task<ICollection<Round>> GetRoundsAsync(Guid id) {
+    return await _backend.GetRoundsAsync(id);
   }
 
   public List<string> GetChangedIncome(int currentRound, IncomeModel currentIncome) {

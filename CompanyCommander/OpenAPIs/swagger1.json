@@ -97,6 +97,54 @@
                 "schema": {
                   "type": "array",
                   "items": {
+                    "$ref": "#/components/schemas/SolarSphereApi.Model.GameInfo"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SolarSphereApi.Model.GameInfo"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SolarSphereApi.Model.GameInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/CompanyCommander/Game/GetRounds": {
+      "get": {
+        "tags": [
+          "Game"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
                     "$ref": "#/components/schemas/SolarSphereApi.Database.Round"
                   }
                 }
@@ -278,6 +326,20 @@
           },
           "faction": {
             "$ref": "#/components/schemas/SolarSphereApi.Database.Faction"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolarSphereApi.Model.GameInfo": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
           }
         },
         "additionalProperties": false
