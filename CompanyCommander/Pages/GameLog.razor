@@ -81,8 +81,7 @@ else
     {
         try
         {
-
-            return round.Income.Where(i => i.Type == type).Single().Amount;
+            return round.Stockpile.Where(i => i.Type == type).Single().Amount;
         }
         catch (Exception)
         {
