@@ -27,7 +27,7 @@ public class GameService {
     "Alfred Jodl",
     "Gotthard Heinrici",
     "Walter Model",
-    "Georg von Küchler"
+    "Georg von Kuechler"
   } },
     { Faction.SovietUnion, new string[]
   {
@@ -253,7 +253,7 @@ public class GameService {
 
   public async Task SaveBackendAsync(int currentRound, Game currentGame, GameState state) {
 
-    for (int i = currentGame.SavedRound; i < currentRound; i++) {
+    for (int i = currentGame.SavedRound; i <= currentRound; i++) {
       var inc = _db.Income.Find(x => x.Round == i);
       var stock = _db.Stockpile.Find(x => x.Round == i);
       var currentIncome = new IncomeModel();
@@ -293,7 +293,7 @@ public class GameService {
         }
       }
 
-      if (i == currentRound - 1) {
+      if (i == currentRound) {
         await SaveBackendAsync(currentIncome, currentCount, i, currentGame, state);
       }
       else {
