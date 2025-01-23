@@ -1,6 +1,7 @@
 ﻿@using CompanyCommander.Components
 @using CompanyCommander.DB
 @using CompanyCommander.Model
+@using System.Reflection
 @inject AppDbContext db
 @inherits LayoutComponentBase
 @code {
@@ -31,8 +32,9 @@ else
 
         <main>
             <div class="top-row px-4">
-                <p role="status">Runde: </p>
-                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+          @*       <p role="status">Runde: </p> *@
+                <p role="status">Version: @Assembly.GetExecutingAssembly().GetName().Version.ToString()</p>
+                @* <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a> *@
             </div>
 
             <article class="content px-4">
