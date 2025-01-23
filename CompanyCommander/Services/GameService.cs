@@ -11,6 +11,50 @@ using System.Threading.Tasks;
 public class GameService {
   private readonly AppDbContext _db;
 
+  private Dictionary<Faction, string[]> _factionGenerals = new Dictionary<Faction, string[]>() {
+    {  Faction.GermanWehrmacht, new string[]
+  {
+    "Erwin Rommel",
+    "Heinz Guderian",
+    "Erich von Manstein",
+    "Friedrich Paulus",
+    "Albert Kesselring"
+  } },
+     {  Faction.OberkommandoWest, new string[]
+  {
+
+    "Wilhelm Keitel",
+    "Alfred Jodl",
+    "Gotthard Heinrici",
+    "Walter Model",
+    "Georg von Küchler"
+  } },
+    { Faction.SovietUnion, new string[]
+  {
+    "Georgi Schukow",
+    "Konstantin Rokossowski",
+    "Iwan Konew",
+    "Wassili Tschuikow",
+    "Alexander Wassilewski"
+  }},
+    { Faction.British, new string[]
+  {
+    "Bernard L. Montgomery",
+    "Miles Dempsey",
+    "Alan Brooke",
+    "Harold Alexander",
+    "Claude Auchinleck"
+  } },
+    {  Faction.UnitedStates,  new string[]
+  {
+    "George S. Patton",
+    "Douglas MacArthur",
+    "Dwight D. Eisenhower",
+    "Omar N. Bradley",
+    "Maurice Rose"
+  }  }
+    };
+
   public GameService(AppDbContext dbContext) {
     _db = dbContext;
   }
@@ -26,7 +70,9 @@ public class GameService {
     }
   }
 
-
+  public string GetRandomPalyerName(Faction team) {
+    return _factionGenerals[team][new Random().Next(0, 5)];
+  }
 
   public async Task GainVictoryPointAsync(int currentRound, IncomeModel currentCount) {
     var stock = _db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound);

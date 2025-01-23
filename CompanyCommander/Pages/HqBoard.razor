@@ -21,6 +21,7 @@ else
 {
     <ConfirmDialog @ref="_confirmDialog" />
     <ConfirmDialog @ref="_confirmVpDialog" />
+    <meta name="version" content="@System.Reflection.Assembly.GetExecutingAssembly().GetName().Version" />
     @*  In Modal: <BodyTemplate>...</BodyTemplate> *@
     <Modal @ref="_modal" Title="Sieg!">
         <BodyTemplate>
@@ -60,7 +61,7 @@ else
                                 <label>Fraktion:</label>
                                 @if (_factions != null)
                                 {
-                                    <InputRadioGroup @bind-Value="_selectedFaction" class="form-control">
+                                    <InputRadioGroup @bind-Value="SelectedFaction" class="form-control">
                                         @foreach (var option in _factions)
                                         {
                                             <div class="form-check">
@@ -391,7 +392,19 @@ else
     private List<int> _vps;
     private int _selectedVp;
     private List<Faction> _factions;
-    private Faction _selectedFaction = Faction.GermanWehrmacht;
+    private Faction _selectedFaction;
+
+    public Faction SelectedFaction
+    {
+        get { return _selectedFaction; }
+        set
+        {
+            _selectedFaction = value;
+            _selectedPlayerName = _gameService.GetRandomPalyerName(_selectedFaction);
+        }
+    }
+
+
     private string _selectedPlayerName = "Spieler 1";
     private Dictionary<StockpileType, List<TickMark>> _currentCountMarks = new Dictionary<StockpileType, List<TickMark>>()
     { { StockpileType.Manpower, new List<TickMark>()},{ StockpileType.Fuel, new List<TickMark>()},{ StockpileType.Ammo, new List<TickMark>()} };
@@ -405,6 +418,8 @@ else
 
         _editions = result.editions;
         _factions = result.factions;
+
+        SelectedFaction = Faction.GermanWehrmacht;
 
         UpdateCountMarks();
         if (result.isRunning)
