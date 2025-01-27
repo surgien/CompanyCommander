@@ -9,8 +9,8 @@
 
 	<PropertyGroup>
 		<VersionPrefix>0.1</VersionPrefix>
-		<VersionSuffix1>$([System.DateTime]::UtcNow.ToString("MMddyy"))</VersionSuffix1>
-		<VersionSuffix2>$([System.DateTime]::UtcNow.ToString("hhmm"))</VersionSuffix2>
+		<VersionSuffix1>$([System.DateTime]::UtcNow.ToString("yyMM"))</VersionSuffix1>
+		<VersionSuffix2>$([System.DateTime]::UtcNow.ToString("ddhhmm"))</VersionSuffix2>
 		
 		<AssemblyVersion>$(VersionPrefix).$(VersionSuffix1).$(VersionSuffix2)</AssemblyVersion>
 		
