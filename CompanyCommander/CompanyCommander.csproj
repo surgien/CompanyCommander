@@ -8,11 +8,12 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<VersionPrefix>0.1</VersionPrefix>
-		<VersionSuffix1>$([System.DateTime]::UtcNow.ToString("yyMM"))</VersionSuffix1>
-		<VersionSuffix2>$([System.DateTime]::UtcNow.ToString("ddhhmm"))</VersionSuffix2>
+		<VersionPrefix>$([System.DateTime]::UtcNow.ToString("yy"))</VersionPrefix>
 		
-		<AssemblyVersion>$(VersionPrefix).$(VersionSuffix1).$(VersionSuffix2)</AssemblyVersion>
+		<VersionSuffix1>$([System.DateTime]::UtcNow.ToString("MMdd"))</VersionSuffix1>
+		<VersionSuffix2>$([System.DateTime]::UtcNow.ToString("hhmm"))</VersionSuffix2>
+		
+		<AssemblyVersion>$(VersionPrefix).1.$(VersionSuffix1).$(VersionSuffix2)</AssemblyVersion>
 		
 
 	</PropertyGroup>
