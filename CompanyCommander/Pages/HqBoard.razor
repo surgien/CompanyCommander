@@ -625,8 +625,26 @@ else
 
     private async void GainVp(MouseEventArgs e)
     {
-        await _gameService.GainVictoryPointAsync(_currentRound, CurrentCount);
-        StateHasChanged();
+
+        var options = new ConfirmDialogOptions
+            {
+                YesButtonText = "Ja",
+                YesButtonColor = ButtonColor.Danger,
+                NoButtonText = "Nein",
+                NoButtonColor = ButtonColor.Info
+            };
+
+        var confirmation = await _confirmDialog.ShowAsync(
+            title: "Kill?",
+            message1: "Vollständige gegnerische Einheit aufgerieben?",
+            confirmDialogOptions: options);
+
+        if (confirmation)
+        {
+            await _gameService.GainVictoryPointAsync(_currentRound, CurrentCount);
+            StateHasChanged();
+        }
+
     }
 
     private async Task OnSave(MouseEventArgs e)

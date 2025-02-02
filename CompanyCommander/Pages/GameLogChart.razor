@@ -150,7 +150,7 @@
                 foreach (var art in round.GroupBy(r => r.Type))
                 {
                     {
-                        data.Add(new LineChartDatasetData(art.Key.ToString(), art.Single().Amount));
+                        data.Add(new LineChartDatasetData(art.Key.ToString(), art.First().Amount));
                     }
                 }
 
@@ -181,7 +181,7 @@
                         {
                             var x = 2;
                         }
-                        data.Add(new LineChartDatasetData(art.Key.ToString(), art.Single().Amount));
+                        data.Add(new LineChartDatasetData(art.Key.ToString(), art.First().Amount));
                     }
                 }
                 chartData = await lineChart.AddDataAsync(chartData, $"Runde {round.Key - 1}", data);

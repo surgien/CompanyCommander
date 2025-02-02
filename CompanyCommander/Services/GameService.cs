@@ -259,45 +259,50 @@ public class GameService {
       var currentIncome = new IncomeModel();
       var currentCount = new IncomeModel();
 
-      foreach (var item in inc) {
-        switch (item.Type) {
-          case StockpileType.Manpower:
-            currentIncome.Manpower = item.Amount;
-            break;
-          case StockpileType.Ammo:
-            currentIncome.Ammo = item.Amount;
-            break;
-          case StockpileType.Fuel:
-            currentIncome.Fuel = item.Amount;
-            break;
-          case StockpileType.VictoryPoints:
-            currentIncome.VictoryPoints = item.Amount;
-            break;
+      if (inc.Any() && stock.Any()) {
+        foreach (var item in inc) {
+          switch (item.Type) {
+            case StockpileType.Manpower:
+              currentIncome.Manpower = item.Amount;
+              break;
+            case StockpileType.Ammo:
+              currentIncome.Ammo = item.Amount;
+              break;
+            case StockpileType.Fuel:
+              currentIncome.Fuel = item.Amount;
+              break;
+            case StockpileType.VictoryPoints:
+              currentIncome.VictoryPoints = item.Amount;
+              break;
+          }
         }
-      }
 
-      foreach (var item in stock) {
-        switch (item.Type) {
-          case StockpileType.Manpower:
-            currentCount.Manpower = item.Amount;
-            break;
-          case StockpileType.Ammo:
-            currentCount.Ammo = item.Amount;
-            break;
-          case StockpileType.Fuel:
-            currentCount.Fuel = item.Amount;
-            break;
-          case StockpileType.VictoryPoints:
-            currentCount.VictoryPoints = item.Amount;
-            break;
+        foreach (var item in stock) {
+          switch (item.Type) {
+            case StockpileType.Manpower:
+              currentCount.Manpower = item.Amount;
+              break;
+            case StockpileType.Ammo:
+              currentCount.Ammo = item.Amount;
+              break;
+            case StockpileType.Fuel:
+              currentCount.Fuel = item.Amount;
+              break;
+            case StockpileType.VictoryPoints:
+              currentCount.VictoryPoints = item.Amount;
+              break;
+          }
         }
-      }
 
-      if (i == currentRound) {
-        await SaveBackendAsync(currentIncome, currentCount, i, currentGame, state);
+        if (i == currentRound) {
+          await SaveBackendAsync(currentIncome, currentCount, i, currentGame, state);
+        }
+        else {
+          await SaveBackendAsync(currentIncome, currentCount, i, currentGame, GameState.Open);
+        }
       }
       else {
-        await SaveBackendAsync(currentIncome, currentCount, i, currentGame, GameState.Open);
+
       }
 
       currentGame.SavedRound = currentRound;
@@ -389,12 +394,12 @@ public class GameService {
     currentCount.Ammo += currentIncome.Ammo;
     currentCount.Fuel += currentIncome.Fuel;
     currentCount.VictoryPoints += currentIncome.VictoryPoints;
+    await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);
 
     if (currentGame != null && currentCount.VictoryPoints >= currentGame.VictoryPoints) {
       await modal.ShowAsync();
       await SaveBackendAsync(currentRound, currentGame, GameState.Win);
     }
-    await NewRoundAsync(currentIncome, currentCount, currentRound, currentGame);
     await _db.SaveDatabaseAsync();
   }
 
