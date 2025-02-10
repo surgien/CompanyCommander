@@ -63,7 +63,7 @@ public class GameService {
 
     var stock = _db.Stockpile.FindOne(x => x.Type == type && x.Round == currentRound);
 
-    if (stock.Amount > 0) {
+    if (amount > 0) {
       stock.Amount = amount;
       await _db.Stockpile.UpdateAsync(stock);
       await _db.SaveDatabaseAsync();
