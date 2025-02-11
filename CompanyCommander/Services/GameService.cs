@@ -294,11 +294,13 @@ public class GameService {
           }
         }
 
-        if (i == currentRound) {
-          await SaveBackendAsync(currentIncome, currentCount, i, currentGame, state);
-        }
-        else {
-          await SaveBackendAsync(currentIncome, currentCount, i, currentGame, GameState.Open);
+        if (i > 0) {
+          if (i == currentRound) {
+            await SaveBackendAsync(currentIncome, currentCount, i, currentGame, state);
+          }
+          else {
+            await SaveBackendAsync(currentIncome, currentCount, i, currentGame, GameState.Open);
+          }
         }
       }
       else {
