@@ -211,6 +211,11 @@ public class GameService {
     await _db.SaveDatabaseAsync();
   }
 
+  public async Task DeleteGameAsync(Guid id) {
+
+    //await _backend.DeleteGameAsync(id);
+  }
+
   public (IncomeModel currentIncome, IncomeModel currentCount, Game currentGame, int currentRound)
     LoadGame() {
     var currentRound = _db.Income.Max(x => x.Round);

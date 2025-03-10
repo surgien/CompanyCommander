@@ -42,7 +42,7 @@ namespace CompanyCommander.DB {
     public int VictoryPoints { get; set; }
     public int SavedRound { get; set; }
     public Faction Faction { get; set; }
-    public string PalyerName{ get; set; }
+    public string PalyerName { get; set; }
   }
 
   public class Stockpile {
@@ -135,6 +135,7 @@ namespace CompanyCommander.DB {
         EnumExtensions.SaveSemaphore.Release();
       }
     }
+
   }
 
   //public class AppDbContext : DbContext {

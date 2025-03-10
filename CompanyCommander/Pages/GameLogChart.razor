@@ -13,16 +13,23 @@
 
 <div class="mt-5">
 
-    <div class="mt-5 d-flex flex-column align-items-start">
+    <div class="mt-5 d-flex flex-column ">
 
-
-        <div class="mb-3 w-100">
-            <AutoComplete @bind-Value="customerName"
-                          TItem="GameInfo"
-                          DataProvider="CustomersDataProvider"
-                          PropertyName="Description"
-                          Placeholder="Spiel suchen..."
-                          OnChanged="OnAutoCompleteChanged" />
+        <div class="mb-3 w-100 d-flex">
+            <div class="flex-grow-1">
+                <AutoComplete @bind-Value="customerName"
+                              TItem="GameInfo"
+                              DataProvider="CustomersDataProvider"
+                              PropertyName="Description"
+                              Placeholder="Spiel suchen..."
+                              OnChanged="OnAutoCompleteChanged"
+                              Style="margin-right: 0.5rem;" />
+            </div>
+            <div class="ml-2">
+                <Button Type="ButtonType.Button" Color="ButtonColor.Danger" Class="ml-20" @onclick="async () => await DeleteRemoteGameAsync()">
+                    Delete
+                </Button>
+            </div>
         </div>
         <div class="mb-3">
             <Button Type="ButtonType.Button" Color="ButtonColor.Primary"
@@ -49,13 +56,13 @@
     private LineChartOptions lineChartOptions = default!;
     private ChartData chartData = default!;
 
+    private GameInfo _loadedGame;
     private List<Stockpile> _currentSockpile;
     private List<DB.Income> _currentIncome;
     private string? customerName;
     public IEnumerable<Customer>? customers;
 
-    private async Task<AutoCompleteDataProviderResult<GameInfo>> CustomersDataProvider(AutoCompleteDataProviderRequest<GameInfo> request)
-    {
+    private async Task<AutoCompleteDataProviderResult<GameInfo>> CustomersDataProvider(AutoCompleteDataProviderRequest<GameInfo> request) {
         var rounds = await _gameService.FindRoundsAsync(request.Filter.Value);
 
         return new AutoCompleteDataProviderResult<GameInfo>() { Data = rounds, TotalCount = rounds.Count };
@@ -63,16 +70,14 @@
         // return await Task.FromResult(new AutoCompleteDataProviderResult<Customer2> { Data = customers, TotalCount = customers.Count() });
     }
 
-    private async void OnAutoCompleteChanged(GameInfo roundInfo)
-    {
-        if (roundInfo != null)
-        {
+    private async void OnAutoCompleteChanged(GameInfo roundInfo) {
+        if (roundInfo != null) {
             var rounds = await _gameService.GetRoundsAsync(roundInfo.Id);
+            _loadedGame = roundInfo;
             _currentSockpile = new List<Stockpile>();
             _currentIncome = new List<DB.Income>();
 
-            foreach (var round in rounds.Where(r => r.RoundNr > 1))
-            {
+            foreach (var round in rounds.Where(r => r.RoundNr > 1)) {
                 _currentSockpile.Add(new Stockpile() { Type = StockpileType.Fuel, Amount = round.Stockpile.Fuel, Round = round.RoundNr });
                 _currentSockpile.Add(new Stockpile() { Type = StockpileType.Manpower, Amount = round.Stockpile.Manpower, Round = round.RoundNr });
                 _currentSockpile.Add(new Stockpile() { Type = StockpileType.Ammo, Amount = round.Stockpile.Ammo, Round = round.RoundNr });
@@ -90,43 +95,47 @@
         }
     }
 
-    public async Task ShowEinkommenAsync()
-    {
+    public async Task ShowEinkommenAsync() {
         chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
         await LoadEinkommenAsync();
         await lineChart.UpdateAsync(chartData, lineChartOptions);
     }
-    public async Task ShowLagerAsync()
-    {
+    public async Task ShowLagerAsync() {
         chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
         await LoadLagerAsync();
         await lineChart.UpdateAsync(chartData, lineChartOptions);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
+    public async Task DeleteRemoteGameAsync() {
+        //TODO: PW abfragen?
+
+        await _gameService.DeleteGameAsync(_loadedGame.Id);
+
+
+        // chartData = new ChartData { Labels = new List<string>(), Datasets = GetDataSets() };
+        // await LoadLagerAsync();
+        // await lineChart.UpdateAsync(chartData, lineChartOptions);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private async Task ShowHorizontalLineChartAsync()
-    {
+    private async Task ShowHorizontalLineChartAsync() {
         lineChartOptions.IndexAxis = "y";
         await lineChart.UpdateAsync(chartData, lineChartOptions);
     }
 
-    private async Task ShowVerticalLineChartAsync()
-    {
+    private async Task ShowVerticalLineChartAsync() {
         lineChartOptions.IndexAxis = "x";
         await lineChart.UpdateAsync(chartData, lineChartOptions);
     }
 
     #region Data Preparation
 
-    protected async override void OnAfterRender(bool firstRender)
-    {
+    protected async override void OnAfterRender(bool firstRender) {
         base.OnAfterRender(firstRender);
-        if (firstRender)
-        {
+        if (firstRender) {
             await db.LoadDatabaseAsync();
             _currentSockpile = db.Stockpile.Find(s => s.Round != 1).ToList();
             _currentIncome = db.Income.Find(s => s.Round != 1).ToList();
@@ -139,16 +148,12 @@
 
     }
 
-    public async Task LoadLagerAsync()
-    {
-        foreach (var round in _currentSockpile.GroupBy(s => s.Round).OrderBy(si => si.Key))
-        {
+    public async Task LoadLagerAsync() {
+        foreach (var round in _currentSockpile.GroupBy(s => s.Round).OrderBy(si => si.Key)) {
 
-            if (round.Key > 1)
-            {
+            if (round.Key > 1) {
                 var data = new List<IChartDatasetData>();
-                foreach (var art in round.GroupBy(r => r.Type))
-                {
+                foreach (var art in round.GroupBy(r => r.Type)) {
                     {
                         data.Add(new LineChartDatasetData(art.Key.ToString(), art.First().Amount));
                     }
@@ -158,27 +163,21 @@
             }
         }
 
-        lineChartOptions = new()
-            {
+        lineChartOptions = new() {
                 IndexAxis = "x",
                 Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
                 Responsive = true,
             };
     }
 
-    public async Task LoadEinkommenAsync()
-    {
-        foreach (var round in _currentIncome.GroupBy(s => s.Round).OrderBy(si => si.Key))
-        {
+    public async Task LoadEinkommenAsync() {
+        foreach (var round in _currentIncome.GroupBy(s => s.Round).OrderBy(si => si.Key)) {
 
-            if (round.Key > 1)
-            {
+            if (round.Key > 1) {
                 var data = new List<IChartDatasetData>();
-                foreach (var art in round.GroupBy(r => r.Type))
-                {
+                foreach (var art in round.GroupBy(r => r.Type)) {
                     {
-                        if (art.Count() > 1)
-                        {
+                        if (art.Count() > 1) {
                             var x = 2;
                         }
                         data.Add(new LineChartDatasetData(art.Key.ToString(), art.First().Amount));
@@ -188,8 +187,7 @@
             }
         }
 
-        lineChartOptions = new()
-            {
+        lineChartOptions = new() {
                 IndexAxis = "x",
                 Interaction = new Interaction { Mode = InteractionMode.Index, Intersect = false },
                 Responsive = true,
@@ -198,21 +196,18 @@
     }
 
     private Dictionary<StockpileType, Color> _colorMapping = new Dictionary<StockpileType, Color>()
-    {
+                                                        {
       { StockpileType.Fuel, ColorTranslator.FromHtml("#3B8640")},
       { StockpileType.Manpower, ColorTranslator.FromHtml("#CED442") },
       { StockpileType.Ammo,  ColorTranslator.FromHtml("#CE3E26")},
       { StockpileType.VictoryPoints, ColorTranslator.FromHtml("#1B2E5C")}
     };
-    
-    private List<IChartDataset> GetDataSets()
-    {
+
+    private List<IChartDataset> GetDataSets() {
         var datasets = new List<IChartDataset>();
         var stocks = _currentSockpile.GroupBy(s => s.Type).ToList();
-        foreach (var group in stocks)
-        {
-            var l = new LineChartDataset
-                {
+        foreach (var group in stocks) {
+            var l = new LineChartDataset {
                     Label = group.Key.ToString(),
                     Data = new List<double?>(),//Die Werte von der Art
                     BackgroundColor = _colorMapping[group.Key].ToRgbaString(),
