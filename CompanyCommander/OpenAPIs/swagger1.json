@@ -75,6 +75,28 @@
         }
       }
     },
+    "/CompanyCommander/Game/DeleteGame": {
+      "get": {
+        "tags": [
+          "Game"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/CompanyCommander/Game/FindRounds": {
       "get": {
         "tags": [

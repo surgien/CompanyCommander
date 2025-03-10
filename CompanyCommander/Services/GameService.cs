@@ -213,7 +213,7 @@ public class GameService {
 
   public async Task DeleteGameAsync(Guid id) {
 
-    //await _backend.DeleteGameAsync(id);
+    await _backend.DeleteGameAsync(id);
   }
 
   public (IncomeModel currentIncome, IncomeModel currentCount, Game currentGame, int currentRound)
@@ -324,7 +324,6 @@ public class GameService {
   }
 
   private async Task SaveBackendAsync(IncomeModel currentIncome, IncomeModel currentCount, int currentRound, Game currentGame, GameState state) {
-    //var backend = new CompanyCommander.Backend.BackendDataContext("https://localhost:7027/", new HttpClient());
 
     await _backend.CollectIncomeAsync(new CompanyCommander.Backend.Round() {
       PlayerName = currentGame.PalyerName,
@@ -349,6 +348,7 @@ public class GameService {
     });
   }
   private BackendDataContext _backend = new BackendDataContext("https://solarsphereapi-gybwcpf8ade9chbj.germanywestcentral-01.azurewebsites.net/", new HttpClient());
+  //private BackendDataContext _backend = new BackendDataContext("https://localhost:7027/", new HttpClient());
 
 
   public async Task<ICollection<Round>> GetRoundsAsync(Guid id) {
