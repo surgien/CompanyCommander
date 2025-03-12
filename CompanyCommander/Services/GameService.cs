@@ -74,16 +74,18 @@ public class GameService {
     return _factionGenerals[team][new Random().Next(0, 5)];
   }
 
-  public async Task GainVictoryPointAsync(int currentRound, IncomeModel currentCount) {
+  public async Task GainVictoryPointAsync(int currentRound, IncomeModel currentCount, int increment = 1) {
     var stock = _db.Stockpile.FindOne(x => x.Type == StockpileType.VictoryPoints && x.Round == currentRound);
 
-    stock.Amount++;
-    currentCount.VictoryPoints++;
+    stock.Amount += increment;
+    currentCount.VictoryPoints += increment;
 
     await _db.SaveDatabaseAsync();
     await _db.Stockpile.UpdateAsync(stock);
     await _db.SaveDatabaseAsync();
-    await _db.Fuks.InsertAsync(new Fuk() { Date = DateTime.Now, Round = currentRound });
+    if (increment == 1) {
+      await _db.Fuks.InsertAsync(new Fuk() { Date = DateTime.Now, Round = currentRound });
+    }
     await _db.SaveDatabaseAsync();
   }
 
@@ -188,7 +190,7 @@ public class GameService {
     currentCount.VictoryPoints = 0;
     var currentRound = 1;
     var currentGame = new Game() {
-      Edition = GameEdition.FirstEditionProWithErrata,
+      Edition = edition,
       Start = DateTime.Now,
       VictoryPoints = targetVpPick,
       PalyerName = name,

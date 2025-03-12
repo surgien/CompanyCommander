@@ -21,6 +21,7 @@ else
 {
     <ConfirmDialog @ref="_confirmDialog" />
     <ConfirmDialog @ref="_confirmVpDialog" />
+
     <meta name="version" content="@System.Reflection.Assembly.GetExecutingAssembly().GetName().Version" />
     @*  In Modal: <BodyTemplate>...</BodyTemplate> *@
     <Modal @ref="_modal" Title="Sieg!">
@@ -204,7 +205,14 @@ else
 
                         <div class="row mb-3">
                             <div class="col">
-                                <button class="btn btn-primary me-2" @onclick="GainVp">☠ Kill +1</button>
+                                <Label style="@( _currentGame.Edition != GameEdition.SecondEditionNormal ? "display:none;" : "")" for="obFlag">Oberhand:</Label>
+                                <InputCheckbox style="@( _currentGame.Edition != GameEdition.SecondEditionNormal ? "display:none;" : "")" id="obFlag" @bind-Value="_moreVps" class="form-check-input" />
+
+                                <Button class="btn btn-primary me-2" @onclick="GainVp"
+                                        style="@(_currentGame.Edition != null && _currentGame.Edition == GameEdition.SecondEditionNormal ? "display:none;" : "")">
+                                    ☠ Kill +1
+                                </Button>
+
                             </div>
                             <div class="col text-end">
                                 <button class="btn btn-primary" @onclick="NextRoundAsync">Einkünfte anpassen</button>
@@ -357,9 +365,13 @@ else
                 <h4>Reihenfolge:</h4>
                 <ol>
                     <li>Einkommen ggfs. anpassen</li>
-                    <li>Siegpunkte ggfs. durch FUKs anpassen</li>
+                    <li style="@(_currentGame.Edition == GameEdition.SecondEditionNormal ? "display:none;" : "")">Siegpunkte ggfs. durch FUKs anpassen</li>
+
+                    <li style="@(_currentGame.Edition != GameEdition.SecondEditionNormal ? "display:none;" : "")">Oberhand? Habt ihr mehr Siegpunkte als euer Gegner? Dann erhaltet ihr 3 zusätzliche Siegpunkte!</li>
+
                     <li>Einkünfte anpassen</li>
                     <li>Kaufen</li>
+                    <li>Ggfs. Pushen</li>
                 </ol>
             </div>
         </div>
@@ -393,6 +405,7 @@ else
     private int _selectedVp;
     private List<Faction> _factions;
     private Faction _selectedFaction;
+    private bool _moreVps = false;
 
     public Faction SelectedFaction
     {
@@ -556,28 +569,49 @@ else
         var changed = _gameService.GetChangedIncome(_currentRound, _currentIncome);
 
         bool confirmed = false;
+        string v2Addition = null;
+
+        if (_currentGame.Edition == GameEdition.SecondEditionNormal)
+        {
+            if (_moreVps)
+            {
+                v2Addition = "Ihr habt die Oberhand!";
+            }
+            else
+            {
+                v2Addition = "Der Gegner hat die Oberhand!";
+            }
+        }
 
         if (!changed.Any())
         {
             confirmed = await _confirmVpDialog.ShowAsync(
-       title: "Alles erledigt?",
-       message1: "Nächste Runde? Die Front ist unverändert!");
+       title: "Nächste Runde?",
+       message1: "Die Front ist unverändert! " + v2Addition);
 
         }
         else
         {
             var parameters = new Dictionary<string, object>();
             parameters.Add("Items", changed);
-            parameters.Add("Title", "Nächste Runde? Es gab Änderungen an der HKL:");
+            parameters.Add("Title", v2Addition + Environment.NewLine + "Es gab Änderungen an der HKL:");
 
             confirmed = await _confirmVpDialog.ShowAsync<NextRoundDialog>(
-       title: "Alles erledigt?",
+       title: "Nächste Runde?",
        parameters: parameters
             );
         }
 
         if (confirmed)
         {
+            if (_currentGame.Edition == GameEdition.SecondEditionNormal && _moreVps)
+            {
+                //3 Zstl. Vps
+
+                await _gameService.GainVictoryPointAsync(_currentRound, CurrentCount, 3);
+                StateHasChanged();
+            }
+
             _currentCountMax[StockpileType.Manpower] = _currentCount.Manpower + _currentIncome.Manpower;
             _currentCountMax[StockpileType.Ammo] = _currentCount.Ammo + _currentIncome.Ammo;
             _currentCountMax[StockpileType.Fuel] = _currentCount.Fuel + _currentIncome.Fuel;
@@ -614,13 +648,13 @@ else
             await _gameService.DeleteAllAsync();
             await Init(edition, _selectedVp);
             Load();
+            StateHasChanged();
         };
 
         _vps = _gameService.GetInitVps(edition);
         _selectedVp = _vps.First();
 
         await _modalVpQuestion.ShowAsync();
-
     }
 
     private async void GainVp(MouseEventArgs e)
